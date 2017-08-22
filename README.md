@@ -25,8 +25,6 @@
   - [ ] Several functions are repeated through the plotting classes, set_curves being one of them. Further code analysis may help determine if this base class is doable and viable or not.
 - [ ] Give the option to disable brushing and linking on some plots later on.
 - [ ] Add the "visibility" concept to the plots' data. This will allow for a new UI element to set the visibility of our realizations.
-
-## User Interface
 - [x] Group the options using "Algorithm options" and "Graphical options" in the side panel;
   - [x] Make a small options section for each plot;
 - [x] Make the Fanchart use grayscale colors for the fans;
@@ -36,20 +34,20 @@
   - [x] Add colormap support for the rank chart;
   - [x] Add colormap support for the projection chart;
   - [x] Add colormap support for the fanchart;
-- [ ] Add a mouse_motion callback to the distance chart. Mark all the points below the pointer with a color, and those above in grayscale. With a click, the user may confirm the selection;
+- [x] Add a mouse_motion callback to the distance chart. Mark all the points below the pointer with a color, and those above in grayscale. With a click, the user may confirm the selection;
   - [x] Add the callbacks to the distance chart;
   - [x] Add a horizonal line indicating the precise distance;
-  - [ ] Add a print of the distance in the window's statusbar;
   - [x] Add the callbacks to the rank chart;
   - [x] Pop a dialog to ask for confirmation if a selection was made before;
   - [x] Make this behavior optional by a button press (Ctrl + mouse disables it);
 - [x] Change the mouse cursor on long operations (Changing the property, loading data);
 - [x] Remove the confirmation when clearing the selected data.
 - [ ] Enable area selection in the projection plot;
-- [ ] Zoom handler for the projection plot;
-- [ ] Legend indicating the P10, P50 and P90's glyphs;
+- [x] Zoom mechanisms to the plots;
+- [ ] Panning mechanisms to the plots;
+- [x] Legend indicating the P10, P50 and P90's glyphs;
 - [ ] Add a trace to the distance plot. This trace will show the distance with increasingly lesser timesteps. (T-1), (T-2), (T-3), ....
-- [ ] Tooltip indicating the model's name when the user hovers the mouse over them.
+- [x] Tooltip indicating the model's name when the user hovers the mouse over them.
 
 ## Ideas
 - [ ] Density 2D scatter plot.
