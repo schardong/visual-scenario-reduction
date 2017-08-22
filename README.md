@@ -53,5 +53,5 @@
 - [ ] Density 2D scatter plot.
   - [ ] Would act as a 2D fanchart using the projection data.
 - [ ] Add color based on the timestep to the MP-Plot. Add the option to use opacity as well.
-- [ ] Apply different colors for different time series in order to compare them.
-
+- [ ] Apply different colors for different time series in order to compare them;
+- [ ] Add visual feedback to the time-range selected by the user (from the distance chart to the other plots).
