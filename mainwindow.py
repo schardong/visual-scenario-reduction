@@ -25,35 +25,39 @@ class MainWindow(QMainWindow):
     """
     WELL_TYPES = ['P', 'I']
 
-    FANCHART_COLOR_OPTIONS_MAPPING = {'Grayscale': 'gray_r',
-                                      'Shades of Blue': 'Blues',
-                                      'Shades of Red': 'Reds',
-                                      'Heat': 'hot_r',
-                                      'Topological': 'gist_earth'}
+    FANCHART_COLOR_OPTIONS_MAPPING = {
+        'Grayscale': 'gray_r',
+        'Shades of Blue': 'Blues',
+        'Shades of Red': 'Reds',
+        'Heat': 'hot_r'
+    }
 
-    FANCHART_OPTIONS_ORDERING = ['Grayscale',
-                                 'Shades of Blue',
-                                 'Shades of Red',
-                                 'Heat',
-                                 'Topological']
+    FANCHART_OPTIONS_ORDERING = [
+        'Grayscale',
+        'Shades of Blue',
+        'Shades of Red',
+        'Heat',
+    ]
 
-    DATA_COLOR_OPTIONS_MAPPING = {'Shades of Blue': 'Blues',
-                                  'Shades of Red': 'Reds',
-                                  'Shades of Orange': 'Oranges',
-                                  'Heat': 'hot',
-                                  'Summer': 'summer',
-                                  'Autumn': 'autumn',
-                                  'Winter': 'winter',
-                                  'Topological': 'gist_earth'}
+    DATA_COLOR_OPTIONS_MAPPING = {
+        'Winter': 'winter',
+        'Summer': 'summer',
+        'Topological': 'gist_earth',
+        'Ocean': 'ocean',
+        'Gist Stern': 'gist_stern',
+        'Terrain':'terrain',
+        'Blue to Magenta': 'cool',
+    }
 
-    DATA_OPTIONS_ORDERING = ['Shades of Blue',
-                             'Shades of Red',
-                             'Shades of Orange',
-                             'Heat',
-                             'Summer',
-                             'Autumn',
-                             'Winter',
-                             'Topological']
+    DATA_OPTIONS_ORDERING = [
+        'Topological',
+        'Ocean',
+        'Terrain',
+        'Blue to Magenta',
+        'Gist Stern',
+        'Winter',
+        'Summer',
+    ]
 
     def __init__(self):
         super(MainWindow, self).__init__()
