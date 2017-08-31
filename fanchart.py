@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from brushableplot import BrushableCanvas
 from zoomhandler import ZoomHandler
+from panhandler import PanHandler
 
 
 def fanchart(ax, x, y, q=np.arange(0, 110, 10),
@@ -114,6 +115,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         BrushableCanvas.__init__(self, canvas_name, parent)
 
         self._zoomhandler = ZoomHandler(self.axes)
+        self._panhandler = PanHandler(self.axes, 3)
 
         # Data setup
         self._curves = None

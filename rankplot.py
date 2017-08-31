@@ -16,6 +16,8 @@ from PyQt5.QtGui import QFont, QPalette, QColor
 
 from brushableplot import BrushableCanvas
 from zoomhandler import ZoomHandler
+from panhandler import PanHandler
+
 
 def rank_series(curves_data,
                 baseline_idx,
@@ -127,6 +129,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         BrushableCanvas.__init__(self, canvas_name, parent)
 
         self._zoomhandler = ZoomHandler(self.axes)
+        self._panhandler = PanHandler(self.axes, 3)
 
         # Data setup
         self._curves = None
@@ -142,7 +145,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._curves_colors = {}
         self._hthresh_line = None
-        self._group_selection = True
+        self._group_selection = False
         self._tooltip = None
         self._plot_params = kwargs
         if 'picker' not in self._plot_params:

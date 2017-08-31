@@ -20,6 +20,7 @@ from PyQt5.QtGui import QFont, QPalette, QColor
 from brushableplot import BrushableCanvas
 from mp import LAMP, MDS, time_lapse_lamp
 from zoomhandler import ZoomHandler
+from panhandler import PanHandler
 
 
 def _plot_timelapse_lamp(ax, point_list, plot_points=True,
@@ -123,6 +124,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         BrushableCanvas.__init__(self, canvas_name, parent)
 
         self._zoomhandler = ZoomHandler(self.axes)
+        self._panhandler = PanHandler(self.axes, 3)
 
         # Data setup
         self._curves = None

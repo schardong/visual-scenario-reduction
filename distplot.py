@@ -17,6 +17,7 @@ from PyQt5.QtGui import QFont, QPalette, QColor
 
 from brushableplot import BrushableCanvas
 from zoomhandler import ZoomHandler
+from panhandler import PanHandler
 
 class DistanceChart(FigureCanvas, BrushableCanvas):
     """
@@ -71,6 +72,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         BrushableCanvas.__init__(self, canvas_name, parent)
 
         self._zoomhandler = ZoomHandler(self.axes)
+        self._panhandler = PanHandler(self.axes, 3)
 
         # Data setup
         self._curves = None
@@ -88,7 +90,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._points_colors = {}
         self._hthresh_line = None
-        self._group_selection = True
+        self._group_selection = False
         self._yidx_points = None
         self._tooltip = None
         self._plot_params = kwargs
