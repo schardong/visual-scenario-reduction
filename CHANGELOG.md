@@ -1,3 +1,7 @@
+v0.3
+* Added pan functionality to the plots;
+* 
+
 v0.2
 * Fixed the plot legend icon colors;
 * Added UI controls for the distance chart time interval;
