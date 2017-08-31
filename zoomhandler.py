@@ -9,7 +9,7 @@ class ZoomHandler:
     undo-like zoom-out operation, which is the default behavior.
     """
 
-    def __init__(self, axes, scale_factor=2, rollback_undo=True):
+    def __init__(self, axes, scale_factor=2):
         """
         ZoomHandler default constructor.
 
@@ -20,15 +20,9 @@ class ZoomHandler:
         scale_factor: number
             The scaling factor to apply when zooming-in.
             Default value is 2.
-        rollback_undo: boolean
-            Switch to dictate the behavior of the zoom-out operation. If set to
-            True, then it will undo the last zoom-in operation. Else, it will
-            apply an inverse scale over of the current zoom. Default value is
-            True.
         """
         self._axes = axes
         self._scale_factor = scale_factor
-        self._rollback_undo = rollback_undo
         self._xlim_stack = []
         self._ylim_stack = []        
 
@@ -94,33 +88,12 @@ class ZoomHandler:
         """
         return self._scale_factor
 
-    @property
-    def rollback_undo(self):
-        """
-        Returns wheter the zoom-out operation has an undo behavior (True) or a
-        scaling behavior (False).
-        """
-        return self._rollback_undo
-
     def apply_zoom(self, new_lims=None):
         """
         """
-        
-        if not new_lims:
-            
+        if new_lims:
+            pass
 
-    def undo_rollback(self, undo):
-        """
-        Sets the behavior of the zoom-out operation. If set to True, then a
-        zoom-out will undo the last zoom-in, else, it will rescale the axes
-        limits.
-
-        Arguments
-        ---------
-        undo: boolean
-            The switch to set the zoom-out behavior.
-        """
-        self._rollback_undo = undo
 
 def zoomhandler_main_test():
     import matplotlib.pyplot as plt
