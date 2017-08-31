@@ -65,6 +65,7 @@ class ZoomHandler:
             elif event.button == 'down': # zoom-out
                 # No more undos.
                 if not self._xlim_stack:
+                    print(self._xlim_stack, self._ylim_stack)
                     return
                 xlim = self._xlim_stack.pop()
                 ylim = self._ylim_stack.pop()
@@ -100,6 +101,13 @@ class ZoomHandler:
         scaling behavior (False).
         """
         return self._rollback_undo
+
+    def apply_zoom(self, new_lims=None):
+        """
+        """
+        
+        if not new_lims:
+            
 
     def undo_rollback(self, undo):
         """

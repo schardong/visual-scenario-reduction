@@ -649,10 +649,6 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         event: matplotlib.backend_bases.MouseEvent
             Data about the event.
         """
-        # Erasing the tooltip.
-        if self._tooltip:
-            self._tooltip.set_visible(False)
-
         if self.plot_points:
             for art in self.axes.collections:
                 art.set_sizes([self.point_plot_params['s']])
@@ -677,10 +673,10 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         timestep = idx % self.curves.shape[1]
 
         art = None
-        if self.plot_points:
-            art = self.axes.collections
-        elif self.plot_lines:
+        if self.plot_lines:
             art = self.axes.lines
+        elif self.plot_points:
+            art = self.axes.collections
         if not art:
             return True
 
@@ -706,6 +702,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
 
                 if self._cb_notify_tooltip:
                     self._cb_notify_tooltip(self.name, pidx)
+
             if self._cb_notify_timestep:
                 self._cb_notify_timestep(self.name, timestep)
         else:
@@ -744,6 +741,16 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self.draw()
 
     def update_chart(self, **kwargs):
+        """
+        Selectively updates the chart based on the given arguments.
+
+        kwargs: Other arguments.
+        'selected_data' - Triggers the update of the highlighted data.
+        'data_changed' - Triggers a redraw of the data. Usually called when
+            the data is changed. Also calls the update_chart method with the
+            'selected_data' parameter.
+        'plot_glyph' - Identical to the 'data_changed' parameter.
+        """
         if self.curves is None or self.control_points is None:
             return
 
