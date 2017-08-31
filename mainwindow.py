@@ -10,7 +10,7 @@ import sys
 
 from PyQt5.QtCore import QDir, Qt
 from PyQt5.QtGui import QIntValidator, QPixmap, QFont
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog,
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDesktopWidget, QFileDialog,
                              QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                              QLabel, QLineEdit, QMainWindow, QMenu, QMessageBox,
                              QPushButton, QVBoxLayout, QWidget, QSlider)
@@ -830,9 +830,14 @@ def main():
     rcParams.update({'figure.autolayout': True})
 
     app = QApplication(sys.argv)
-    f = app.font()
-    f.setPointSize(16)
-    app.setFont(f)
+
+    rect = QDesktopWidget().screenGeometry(-1)
+    w, h = rect.width(), rect.height()
+    if w > 1920 and h > 1080:
+        f = app.font()
+        f.setPointSize(16)
+        app.setFont(f)
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
