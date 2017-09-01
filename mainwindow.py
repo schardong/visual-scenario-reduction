@@ -9,7 +9,7 @@ import os
 import sys
 
 from PyQt5.QtCore import QDir, Qt
-from PyQt5.QtGui import QIntValidator, QPixmap, QFont
+from PyQt5.QtGui import QIntValidator, QPixmap
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDesktopWidget, QFileDialog,
                              QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                              QLabel, QLineEdit, QMainWindow, QMenu, QMessageBox,
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         """
         QMessageBox.about(self, 'About this software', 'This software is a prototype time-series visualization tool that implements a series of charts in order to help on the task of selecting representative time-series. To accomplish this task, the software uses the brushing and linking technique to enable the selection of a series (or group of series) in one chart and this seleciton is reflected on the others. This tool also implements two new charts proposed by our research work, the Time-lapsed Multidimensional Projection chart and the Rank chart.\n\nThis is a prototype, meaning that there are bugs lying around and the user interface is definetly not polished. We provide no warranty whatsoever, so use this software at your own risk.')
 
-    def closeEvent(self, event):
+    def closeEvent(self, _):
         """
         Method called when the window is about to be closed.
         """
@@ -833,14 +833,11 @@ def main():
     app = QApplication(sys.argv)
 
     rect = QDesktopWidget().screenGeometry(-1)
-    w, h = rect.width(), rect.height()
     width = 1400
     height = 1000
-    if w > 1920 and h > 1080:
-        f = app.font()
-        f.setPointSize(16)
-        app.setFont(f)
-        width, height = (1650, 1200)
+    if rect.width() > 1920 and rect.height() > 1080:
+        app.setFont(app.font().setPointSize(16))
+        width, height = (1650, 1080)
 
     window = MainWindow(width, height)
     window.show()
