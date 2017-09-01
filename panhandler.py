@@ -21,16 +21,20 @@ class PanHandler:
         """
         self._axes = axes
         self._mouse_button = mouse_button
-        self._press = None
         self._curr_xlim = None
         self._curr_ylim = None
         self._press_coords = None
 
+        # Mouse actions callback IDs
         self._cb_mouse_button_id = None
         self._cb_mouse_move_id = None
         self._cb_mouse_release_id = None
 
         self._connect_cb()
+
+    def __del__(self):
+        self._disconnect_cb()
+        self._axes = None
 
     @property
     def axes(self):
