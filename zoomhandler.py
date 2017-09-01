@@ -88,10 +88,32 @@ class ZoomHandler:
         """
         return self._scale_factor
 
+    def reset_zoom(self):
+        """
+        Resets the axes scaling to the original levels and clears the zoom
+        stack.
+        """
+        if self._xlim_stack:
+            self.axes.set_xlim(self._xlim_stack[0])
+            self.axes.set_ylim(self._ylim_stack[0])
+        self._xlim_stack = []
+        self._ylim_stack = []
+        self.axes.figure.canvas.draw()
+
     def apply_zoom(self, new_lims=None):
         """
+        Applies the axes scaling using the last selected levels, or the new
+        limits provided.
+
+        new_lims: tuple of numbers
+            The new limits to apply to the axes. Default value is None,
+            meaning that the last registered values will be used.
         """
         if new_lims:
+            curr_xlim = self.axes.get_xlim()
+            curr_ylim = self.axes.get_ylim()
+            self._xlim_stack.append(curr_xlim)
+            self._ylim_stack.append(curr_ylim)
             pass
 
 

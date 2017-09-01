@@ -599,6 +599,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             art.set_linewidth(self.line_plot_params['linewidth'] * 2)
         self.draw()
 
+    def reset_plot(self):
+        """
+        Resets the plot state, undoing all zoom and pan actions.
+        """
+        self._zoomhandler.reset_zoom()
+        self.update_chart(data_changed=True)
+
     # Callback methods
     def cb_mouse_pick(self, event):
         """
@@ -915,7 +922,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         return proj_points
 
 
-def tllamp_main_test():
+def main():
     from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
                                  QPushButton, QVBoxLayout, QHBoxLayout)
     import sys
@@ -950,6 +957,8 @@ def tllamp_main_test():
             lines_button.clicked.connect(self.switch_line_state)
             rand_data = QPushButton('Generate new data', self)
             rand_data.clicked.connect(self.update_data)
+            reset_button = QPushButton('Reset view', self)
+            reset_button.clicked.connect(self.reset_plot)
 
             self.main_widget = QWidget(self)
             l = QHBoxLayout(self.main_widget)
@@ -958,6 +967,7 @@ def tllamp_main_test():
             button_layout.addWidget(points_button)
             button_layout.addWidget(lines_button)
             button_layout.addWidget(rand_data)
+            button_layout.addWidget(reset_button)
             l.addLayout(button_layout)
 
             self.setFocus()
@@ -991,6 +1001,9 @@ def tllamp_main_test():
             print('widget {} brushed some objects.'.format(child_name))
             print('Objects:\n\t', obj_ids)
 
+        def reset_plot(self):
+            self.lamp.reset_plot()
+
     app = QApplication(sys.argv)
     ex = MyTestWidget()
     ex.show()
@@ -998,4 +1011,4 @@ def tllamp_main_test():
 
 
 if __name__ == '__main__':
-    tllamp_main_test()
+    main()

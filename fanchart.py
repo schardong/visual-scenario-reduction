@@ -452,6 +452,13 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         pass
 
+    def reset_plot(self):
+        """
+        Resets the plot state, undoing all zoom and pan actions.
+        """
+        self._zoomhandler.reset_zoom()
+        self.update_chart(data_changed=True)
+
     def update_chart(self, **kwargs):
         """
         Function to update the plot when the parameters are changed.
@@ -536,7 +543,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             self._cb_scrollwheel_id = None
 
 
-def fanchart_main_test():
+def main():
     from PyQt5.QtWidgets import (QApplication, QComboBox, QFormLayout, QLabel,
                                  QMainWindow, QWidget, QPushButton,
                                  QHBoxLayout, QVBoxLayout)
@@ -598,6 +605,8 @@ def fanchart_main_test():
             p90_button.clicked.connect(self.enableP90)
             rand_data = QPushButton('Generate new data', self)
             rand_data.clicked.connect(self.update_data)
+            reset_button = QPushButton('Reset view', self)
+            reset_button.clicked.connect(self.reset_plot)
 
             self.main_widget = QWidget(self)
             l = QHBoxLayout(self.main_widget)
@@ -615,6 +624,8 @@ def fanchart_main_test():
             sidelayout.addWidget(p50_button)
             sidelayout.addWidget(p10_button)
             sidelayout.addWidget(rand_data)
+            sidelayout.addWidget(reset_button)
+
             l.addLayout(sidelayout)
 
             self.setFocus()
@@ -670,6 +681,9 @@ def fanchart_main_test():
             opt = self.combo_line_colormap.currentText()
             self.fanchart.set_lines_colormap(self.lines_colormap[opt])
 
+        def reset_plot(self):
+            self.fanchart.reset_plot()
+
     app = QApplication(sys.argv)
     ex = MyTestWidget()
     ex.show()
@@ -677,4 +691,4 @@ def fanchart_main_test():
 
 
 if __name__ == '__main__':
-    fanchart_main_test()
+    main()

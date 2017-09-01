@@ -408,6 +408,13 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         """
         self._curvenames = curvenames
 
+    def reset_plot(self):
+        """
+        Resets the plot state, undoing all zoom and pan actions.
+        """
+        self._zoomhandler.reset_zoom()
+        self.update_chart(data_changed=True)
+
     # Callback methods
     def cb_mouse_motion(self, event):
         """
@@ -718,7 +725,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         return (X, Y)
 
 
-def distplot_main_test():
+def main():
     from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
                                  QPushButton, QVBoxLayout, QHBoxLayout, QFormLayout, QSlider,
                                  QMessageBox, QCheckBox, QLabel)
@@ -782,6 +789,8 @@ def distplot_main_test():
             group_sel = QCheckBox('Group selection', self)
             group_sel.setChecked(self.dist_chart.group_selection_enabled)
             group_sel.stateChanged.connect(self.set_group_selection)
+            reset_button = QPushButton('Reset view', self)
+            reset_button.clicked.connect(self.reset_plot)
 
             lbl_start_ts = QLabel('Start time', self)
             lbl_end_ts = QLabel('End time', self)
@@ -817,6 +826,7 @@ def distplot_main_test():
             button_layout.addWidget(p90_baseline_button)
             button_layout.addWidget(rand_data)
             button_layout.addWidget(group_sel)
+            button_layout.addWidget(reset_button)
             button_layout.addLayout(slider_layout)
 
             l.addLayout(button_layout)
@@ -939,6 +949,9 @@ def distplot_main_test():
             answer = msg.exec()
             return answer == QMessageBox.Yes
 
+        def reset_plot(self):
+            self.dist_chart.reset_plot()
+
     app = QApplication(sys.argv)
     ex = MyTestWidget()
     ex.show()
@@ -946,4 +959,4 @@ def distplot_main_test():
 
 
 if __name__ == '__main__':
-    distplot_main_test()
+    main()
