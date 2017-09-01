@@ -13,7 +13,7 @@ from PyQt5.QtGui import QIntValidator, QPixmap, QFont
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDesktopWidget, QFileDialog,
                              QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                              QLabel, QLineEdit, QMainWindow, QMenu, QMessageBox,
-                             QPushButton, QVBoxLayout, QWidget, QSlider)
+                             QPushButton, QStyleFactory, QVBoxLayout, QWidget, QSlider)
 
 from fieldensemble import FieldEnsemble
 from plotwidget import PlotWidget
@@ -59,12 +59,12 @@ class MainWindow(QMainWindow):
         'Summer',
     ]
 
-    def __init__(self):
+    def __init__(self, width, height):
         super(MainWindow, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._plt_widget = None
         self._left, self._top = 0, 0
-        self._width, self._height = 1400, 1000
+        self._width, self._height = width, height
         self._title = 'Time-Lapse Multidimensional Projection Explorer'
 
         # Data setup
@@ -829,16 +829,20 @@ def main():
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
 
+    QApplication.setStyle(QStyleFactory.create('Fusion'))
     app = QApplication(sys.argv)
 
     rect = QDesktopWidget().screenGeometry(-1)
     w, h = rect.width(), rect.height()
+    width = 1400
+    height = 1000
     if w > 1920 and h > 1080:
         f = app.font()
         f.setPointSize(16)
         app.setFont(f)
+        width, height = (1650, 1200)
 
-    window = MainWindow()
+    window = MainWindow(width, height)
     window.show()
     sys.exit(app.exec_())
 
