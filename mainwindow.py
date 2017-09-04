@@ -836,7 +836,8 @@ def main():
     width = 1400
     height = 1000
     if rect.width() > 1920 and rect.height() > 1080:
-        app.setFont(app.font().setPointSize(16))
+        app.font().setPointSize(16)
+        app.setFont(app.font())
         width, height = (1650, 1080)
 
     window = MainWindow(width, height)

@@ -237,6 +237,10 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             not. Default value is True.
         """
         self._log_scale = log_scale
+
+        # Must reset the zoom, since the axes limits are changed.
+        self._zoomhandler.reset_zoom()
+
         if update_chart:
             self.update_chart(data_changed=True)
 
