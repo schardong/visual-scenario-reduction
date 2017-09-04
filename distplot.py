@@ -663,6 +663,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                                                            **plot_params)
 
             self.update_chart(selected_data=True)
+
         self.draw()
 
     # Private methods

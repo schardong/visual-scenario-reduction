@@ -24,7 +24,9 @@ class ZoomHandler:
         self._axes = axes
         self._scale_factor = scale_factor
         self._xlim_stack = []
-        self._ylim_stack = []        
+        self._ylim_stack = []
+        self._curr_xlim = None
+        self._curr_ylim = None
 
     def __call__(self, event):
         """
@@ -51,21 +53,23 @@ class ZoomHandler:
                 ymin = ydata - curr_ylim[0]
                 ymax = curr_ylim[1] - ydata
 
-                self.axes.set_xlim([xdata - xmin / self.scale_factor,
-                                    xdata + xmax / self.scale_factor])
-                self.axes.set_ylim([ydata - ymin / self.scale_factor,
-                                    ydata + ymax / self.scale_factor])
+                self._curr_xlim = [xdata - xmin / self.scale_factor,
+                                   xdata + xmax / self.scale_factor]
+                self._curr_ylim = [ydata - ymin / self.scale_factor,
+                                   ydata + ymax / self.scale_factor]
+
+                self.axes.set_xlim(self._curr_xlim)
+                self.axes.set_ylim(self._curr_ylim)
 
             elif event.button == 'down': # zoom-out
                 # No more undos.
                 if not self._xlim_stack:
-                    print(self._xlim_stack, self._ylim_stack)
                     return
-                xlim = self._xlim_stack.pop()
-                ylim = self._ylim_stack.pop()
+                self._curr_xlim = self._xlim_stack.pop()
+                self._curr_ylim = self._ylim_stack.pop()
 
-                self.axes.set_xlim(xlim)
-                self.axes.set_ylim(ylim)
+                self.axes.set_xlim(self._curr_xlim)
+                self.axes.set_ylim(self._curr_ylim)
 
             self.axes.figure.canvas.draw()
 
@@ -94,27 +98,22 @@ class ZoomHandler:
         stack.
         """
         if self._xlim_stack:
-            self.axes.set_xlim(self._xlim_stack[0])
-            self.axes.set_ylim(self._ylim_stack[0])
+            self._curr_xlim = self._xlim_stack[0]
+            self._curr_ylim = self._ylim_stack[0]
+            self.axes.set_xlim(self._curr_xlim)
+            self.axes.set_ylim(self._curr_ylim)
         self._xlim_stack = []
         self._ylim_stack = []
         self.axes.figure.canvas.draw()
 
-    def apply_zoom(self, new_lims=None):
+    def apply_zoom(self):
         """
-        Applies the axes scaling using the last selected levels, or the new
-        limits provided.
-
-        new_lims: tuple of numbers
-            The new limits to apply to the axes. Default value is None,
-            meaning that the last registered values will be used.
+        Applies the axes scaling using the last selected level.
         """
-        if new_lims:
-            curr_xlim = self.axes.get_xlim()
-            curr_ylim = self.axes.get_ylim()
-            self._xlim_stack.append(curr_xlim)
-            self._ylim_stack.append(curr_ylim)
-            pass
+        if self._curr_xlim:
+            self.axes.set_xlim(self._curr_xlim)
+            self.axes.set_ylim(self._curr_ylim)
+            self.axes.figure.canvas.draw()
 
 
 def zoomhandler_main_test():

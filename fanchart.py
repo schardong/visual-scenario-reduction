@@ -522,6 +522,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                 self._vline = self.axes.axvline(x=self.highlighted_timestep,
                                                 **self._vline_props)
 
+        self._zoomhandler.apply_zoom()
         self.draw()
 
     # Private methods

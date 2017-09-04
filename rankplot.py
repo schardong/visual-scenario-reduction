@@ -663,6 +663,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
 
             self.update_chart(selected_data=True)
 
+        self._zoomhandler.apply_zoom()
         self.draw()
 
     # Private methods
