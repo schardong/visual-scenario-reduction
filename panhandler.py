@@ -70,6 +70,23 @@ class PanHandler:
         self.axes.set_ylim(self._curr_ylim)
         self.axes.figure.canvas.draw()
 
+    def reset_pan(self):
+        """
+        Resets the pan transform to the original value.
+        """
+        self._curr_xlim = None
+        self._curr_ylim = None
+
+    def apply_pan(self):
+        """
+        Applies the axes pan. Useful after doing a redraw of the canvas.
+        """
+        if self._curr_xlim is not None:
+            self.axes.set_xlim(self._curr_xlim)
+            self.axes.set_ylim(self._curr_ylim)
+            self.axes.figure.canvas.draw()
+
+    # Private methods
     def _connect_cb(self):
         fig = self.axes.figure
         self._cb_mouse_button_id = fig.canvas.mpl_connect('button_press_event', self.mouse_click)

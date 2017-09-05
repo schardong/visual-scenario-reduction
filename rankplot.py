@@ -146,7 +146,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._curves_colors = {}
         self._hthresh_line = None
         self._group_selection = False
-        self._tooltip = None
         self._plot_params = kwargs
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 2
@@ -358,9 +357,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
         curve_idx: int
             The index of the curve to draw the tooltip on.
         """
-        if self._tooltip:
-            self._tooltip.set_visible(False)
-
         # Restoring the lines' widths.
         if self._plotted_series:
             for art in self._plotted_series:
@@ -441,6 +437,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         Resets the plot state, undoing all zoom and pan actions.
         """
         self._zoomhandler.reset_zoom()
+        self._panhandler.reset_pan()
         self.update_chart(data_changed=True)
 
     # Callback methods
@@ -475,10 +472,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 if self._is_normal_curve_idx(i):
                     line.set_color(self._curves_colors[i])
             self.draw()
-
-        # Erasing the tooltip.
-        if self._tooltip:
-            self._tooltip.set_visible(False)
 
         # Restoring the lines' widths.
         if self._plotted_series:
@@ -599,9 +592,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
         event: matplotlib.backend_bases.LocationEvent
             Data about the event.
         """
-        if self._tooltip:
-            self._tooltip.set_visible(False)
-
         if self._cb_notify_tooltip:
             self._cb_notify_tooltip(self.name, None)
 
@@ -664,6 +654,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self.update_chart(selected_data=True)
 
         self._zoomhandler.apply_zoom()
+        self._panhandler.apply_pan()
         self.draw()
 
     # Private methods

@@ -604,6 +604,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         Resets the plot state, undoing all zoom and pan actions.
         """
         self._zoomhandler.reset_zoom()
+        self._panhandler.reset_pan()
         self.update_chart(data_changed=True)
 
     # Callback methods
@@ -807,6 +808,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.update_chart(selected_data=True)
 
         self._zoomhandler.apply_zoom()
+        self._panhandler.apply_pan()
         self.draw()
 
     # Private methods
