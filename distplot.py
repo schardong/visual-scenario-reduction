@@ -92,7 +92,6 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         self._hthresh_line = None
         self._group_selection = False
         self._yidx_points = None
-        self._tooltip = None
         self._plot_params = kwargs
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 3
@@ -351,9 +350,6 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         curve_idx: int
             The index of the curve to draw the tooltip on.
         """
-        if self._tooltip:
-            self._tooltip.set_visible(False)
-
         # Restoring the points' sizes.
         if self._point_artists:
             for art in self._point_artists:
@@ -454,10 +450,6 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                 if i not in self._reference_idx:
                     p.set_facecolor(self._points_colors[i])
             self.draw()
-
-        # Erasing the tooltip.
-        if self._tooltip:
-            self._tooltip.set_visible(False)
 
         # Restoring the points' original size.
         if self._point_artists:

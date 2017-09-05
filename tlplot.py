@@ -142,7 +142,6 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._plot_title = self.base_plot_name()
         self._reference_parameters = {}
         self._cmap_name = 'rainbow'
-        self._tooltip = None
         self._plot_params = kwargs
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 3
@@ -576,9 +575,6 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         curve_idx: int
             The index of the curve to draw the tooltip on.
         """
-        if self._tooltip:
-            self._tooltip.set_visible(False)
-
         # Restoring the points/lines sizes.
         if self.plot_points:
             for art in self.axes.collections:
@@ -741,9 +737,6 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         if self._cb_notify_timestep:
             self._cb_notify_timestep(self.name, None)
-
-        if self._tooltip:
-            self._tooltip.set_visible(False)
 
         if self._cb_notify_tooltip:
             self._cb_notify_tooltip(self.name, None)
