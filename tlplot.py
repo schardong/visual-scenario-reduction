@@ -393,6 +393,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
 
         if update_chart:
             self.update_chart(data_changed=True, selected_data=True)
+            self.reset_plot()
 
     def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
                             **kwargs):
@@ -800,8 +801,14 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.axes.set_yticklabels([])
             self.update_chart(selected_data=True)
 
-        self._zoomhandler.apply_zoom()
-        self._panhandler.apply_pan()
+        if 'apply_transforms' in kwargs:
+            self._zoomhandler.apply_zoom()
+            self._panhandler.apply_pan()
+        if 'apply_zoom' in kwargs:
+            self._zoomhandler.apply_zoom()
+        if 'apply_pan' in kwargs:
+            self._panhandler.apply_pan()
+
         self.draw()
 
     # Private methods

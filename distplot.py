@@ -285,6 +285,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
 
         if update_chart:
             self.update_chart(data_changed=True)
+            self.reset_plot()
 
     def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
                             **kwargs):
@@ -413,6 +414,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         Resets the plot state, undoing all zoom and pan actions.
         """
         self._zoomhandler.reset_zoom()
+        self._panhandler.reset_pan()
         self.update_chart(data_changed=True)
 
     # Callback methods
@@ -631,7 +633,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             # Setting the plot's Y axes.
             ymin = P[self._yidx_points[1]]
             ymax = P[self._yidx_points[-1]]
-            self.axes.set_ylim([ymin - ymin / 10, ymax + ymax / 10])
+            self.axes.set_ylim([0.9 * ymin, 1.1 * ymax])
 
             # Setting the colormap.
             colormap = cm.get_cmap(name=self.colormap_name,
@@ -655,6 +657,14 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                                                            **plot_params)
 
             self.update_chart(selected_data=True)
+
+        if 'apply_transforms' in kwargs:
+            self._zoomhandler.apply_zoom()
+            self._panhandler.apply_pan()
+        if 'apply_zoom' in kwargs:
+            self._zoomhandler.apply_zoom()
+        if 'apply_pan' in kwargs:
+            self._panhandler.apply_pan()
 
         self.draw()
 

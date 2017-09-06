@@ -325,7 +325,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             if self._reference_parameters[curve_idx]:
                 del self._reference_parameters[curve_idx]
         if update_chart:
-            self.update_chart(data_changed=True)
+            self.update_chart(data_changed=True, apply_transforms=True)
 
     def is_reference_curve(self, idx):
         """
@@ -523,8 +523,14 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                 self._vline = self.axes.axvline(x=self.highlighted_timestep,
                                                 **self._vline_props)
 
-        self._zoomhandler.apply_zoom()
-        self._panhandler.apply_pan()
+        if 'apply_transforms' in kwargs:
+            self._zoomhandler.apply_zoom()
+            self._panhandler.apply_pan()
+        if 'apply_zoom' in kwargs:
+            self._zoomhandler.apply_zoom()
+        if 'apply_pan' in kwargs:
+            self._panhandler.apply_pan()
+
         self.draw()
 
     # Private methods
@@ -639,6 +645,7 @@ def main():
             curves = np.vstack(
                 (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
 
+            self.fanchart.reset_plot()
             self.fanchart.set_curves(curves)
             self.fanchart.set_reference_curve(curves.shape[0] - 3,
                                               True, False, color='m')

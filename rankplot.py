@@ -653,8 +653,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
 
             self.update_chart(selected_data=True)
 
-        self._zoomhandler.apply_zoom()
-        self._panhandler.apply_pan()
+        if 'apply_transforms' in kwargs:
+            self._zoomhandler.apply_zoom()
+            self._panhandler.apply_pan()
+        if 'apply_zoom' in kwargs:
+            self._zoomhandler.apply_zoom()
+        if 'apply_pan' in kwargs:
+            self._panhandler.apply_pan()
+
         self.draw()
 
     # Private methods
