@@ -10,10 +10,12 @@ import sys
 
 from PyQt5.QtCore import QDir, Qt
 from PyQt5.QtGui import QIntValidator, QPixmap
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDesktopWidget, QFileDialog,
-                             QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
-                             QLabel, QLineEdit, QMainWindow, QMenu, QMessageBox,
-                             QPushButton, QStyleFactory, QVBoxLayout, QWidget, QSlider)
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
+                             QDesktopWidget, QFileDialog, QFormLayout,
+                             QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                             QLineEdit, QMainWindow, QMenu, QMessageBox,
+                             QPushButton, QStyleFactory, QVBoxLayout,
+                             QWidget, QSlider)
 
 from fieldensemble import FieldEnsemble
 from plotwidget import PlotWidget
@@ -45,7 +47,7 @@ class MainWindow(QMainWindow):
         'Topological': 'gist_earth',
         'Ocean': 'ocean',
         'Gist Stern': 'gist_stern',
-        'Terrain':'terrain',
+        'Terrain': 'terrain',
         'Blue to Magenta': 'cool',
     }
 
@@ -277,8 +279,8 @@ class MainWindow(QMainWindow):
         Sets wheter the timestep highlight is enabled for the projection chart.
         """
         pass
-        #checked = True
-        #if state == Qt.Unchecked:
+        # checked = True
+        # if state == Qt.Unchecked:
         #    checked = False
         # self._plt_widget.set_timestep_highlight_enabled(checked)
 

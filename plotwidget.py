@@ -6,10 +6,8 @@ This module contains the main Qt5 widget to plot the data, plus its unit tests.
 '''
 
 import numpy as np
-import scipy.spatial.distance
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QMessageBox, QWidget
-from sklearn import manifold
 
 from distplot import DistanceChart
 from fanchart import Fanchart
