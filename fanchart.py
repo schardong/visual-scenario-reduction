@@ -360,21 +360,23 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             if self._hovered_line[0] not in self.highlighted_data:
                 self._hovered_line[0].set_visible(False)
             else:
-                self._hovered_line[0].set_linewidth(self._plot_params['linewidth'])
+                self._hovered_line[0].set_linewidth(
+                    self._plot_params['linewidth'])
 
         if not curve_idx or curve_idx not in range(self.curves.shape[0]):
             self.draw()
             return
 
         color = 'black'
-        if not curve_idx in self._curves_colors:
+        if curve_idx not in self._curves_colors:
             color = self._reference_parameters[curve_idx]['color']
         else:
             color = self._curves_colors[curve_idx]
 
-        self._hovered_line = self.axes.plot(self.curves[curve_idx, :],
-                                            color=color,
-                                            linewidth=self._plot_params['linewidth'] * 2)
+        self._hovered_line = self.axes.plot(
+            self.curves[curve_idx, :], color=color,
+            linewidth=self._plot_params['linewidth'] * 2)
+
         self.draw()
 
     def set_fan_colormap(self, cmap_name, update_chart=True):
@@ -427,7 +429,8 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
     def set_curvenames(self, curvenames):
         """
-        Sets the names of the curves. These are shown if the tooltip feature is enabled.
+        Sets the names of the curves. These are shown if the tooltip feature
+        is enabled.
 
         Parameters
         ----------
@@ -481,8 +484,9 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
             # Then we add the selected lines over it.
             for i in self.highlighted_data:
-                self._plotted_lines[i] = self.axes.plot(self.curves[i, :],
-                                                        color=self._curves_colors[i])
+                self._plotted_lines[i] = self.axes.plot(
+                    self.curves[i, :],
+                    color=self._curves_colors[i])
 
         if 'data_changed' in kwargs:
             self.axes.cla()
@@ -493,7 +497,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             normal_idx = [i for i in range(len(self.curves))
                           if i not in self._reference_idx]
             lines_colormap = cm.get_cmap(name=self.colormap_name,
-                                         lut=len(normal_idx))
+                                         lut=len(self.curves))
             self._curves_colors = dict((i, lines_colormap(i))
                                        for i in normal_idx)
             if self.curves is not None:
@@ -514,10 +518,10 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                            **self._reference_parameters[i])
 
         if 'highlighted_timestep' in kwargs:
+            # If the timestep indicator line is drawn, we set it as invisible
+            # here.
             if self._vline is not None:
-                # First we remove all lines in the chart, including the
-                # timestep indicator line
-                self.update_chart(selected_data=True)
+                self._vline.set_visible(False)
 
             if self.highlighted_timestep is not None:
                 self._vline = self.axes.axvline(x=self.highlighted_timestep,

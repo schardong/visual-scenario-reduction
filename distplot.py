@@ -19,6 +19,7 @@ from brushableplot import BrushableCanvas
 from zoomhandler import ZoomHandler
 from panhandler import PanHandler
 
+
 class DistanceChart(FigureCanvas, BrushableCanvas):
     """
     This class builds an Instance/Distance plot.
@@ -247,7 +248,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         """
         Sets the callback function to call when a tooltip is drawn on this
         plot.
-        
+
         The callback function given here is called right after drawing the
         tooltip on this plot. This can be used to link several plots.
 

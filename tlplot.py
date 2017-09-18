@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QSizePolicy, QToolTip
 from PyQt5.QtGui import QFont, QPalette, QColor
 
 from brushableplot import BrushableCanvas
-from mp import LAMP, MDS, time_lapse_lamp
+from mp import time_lapse_lamp
 from zoomhandler import ZoomHandler
 from panhandler import PanHandler
 
@@ -787,7 +787,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.axes.set_ylabel('Axis 2')
 
             colormap = cm.get_cmap(name=self.colormap_name,
-                                   lut=len(nref_idx))
+                                   lut=len(self.curves))
             for i in nref_idx:
                 self._plot_params['color'] = colormap(i)
                 self._plot_path_projection(self.projected_curves[i],

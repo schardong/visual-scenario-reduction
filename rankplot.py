@@ -637,7 +637,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
                           if self._is_normal_curve_idx(i)]
 
             colormap = cm.get_cmap(name=self.colormap_name,
-                                   lut=len(normal_idx))
+                                   lut=len(self.curves))
             self._curves_colors = dict((i, colormap(i))
                                        for i in normal_idx)
 
