@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         self._plt_widget = None
         self._left, self._top = 0, 0
         self._width, self._height = width, height
-        self._title = 'Time-Lapse Multidimensional Projection Explorer'
+        self._title = 'Time-series Scenario Selection'
 
         # Data setup
         self._ensemble = None
