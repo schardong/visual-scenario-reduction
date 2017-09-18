@@ -92,6 +92,8 @@ class MainWindow(QMainWindow):
         self._text_end_ts = None
         self._sld_start_ts = None
         self._sld_end_ts = None
+        self._main_widget = None
+        self._panel_widget = None
 
         self._build_ui()
 
@@ -134,6 +136,18 @@ class MainWindow(QMainWindow):
             The ID of the current baseline (p10, p50 or p90).
         """
         return self._curr_baseline
+
+    def resizeEvent(self, event):
+        """
+        Processes a Qt resize event.
+
+        Parameters
+        ----------
+        event: Qt
+        """
+        new_size = event.size()
+        self._panel_widget.setMaximumSize(
+            400, new_size.height())
 
     def set_current_property(self, new_prop):
         """
@@ -469,13 +483,15 @@ class MainWindow(QMainWindow):
             self._sld_start_ts.setMaximum(end_ts)
             self._sld_start_ts.setValue(start_ts)
 
-            self._text_start_ts.setValidator(QIntValidator(start_ts, end_ts, self._text_start_ts))
+            self._text_start_ts.setValidator(
+                QIntValidator(start_ts, end_ts, self._text_start_ts))
             self._text_start_ts.setText(str(start_ts))
 
             self._sld_end_ts.setMaximum(end_ts)
             self._sld_end_ts.setValue(end_ts)
 
-            self._text_end_ts.setValidator(QIntValidator(start_ts, end_ts, self._text_end_ts))
+            self._text_end_ts.setValidator(
+                QIntValidator(start_ts, end_ts, self._text_end_ts))
             self._text_end_ts.setText(str(end_ts))
 
             QApplication.restoreOverrideCursor()
@@ -490,6 +506,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(self._left, self._top, self._width, self._height)
 
         self._plt_widget = PlotWidget(self)
+        self._panel_widget = QWidget(self)
 
         self._main_widget = QWidget(self)
         lay = QHBoxLayout(self._main_widget)
@@ -516,11 +533,13 @@ class MainWindow(QMainWindow):
         self._graphics_box.setLayout(graphics_layout)
 
         self._alg_box = self._build_algorithm_options_box()
-        main_panel_layout = QVBoxLayout(self._main_widget)
-        main_panel_layout.addWidget(self._alg_box)
-        main_panel_layout.addWidget(self._graphics_box)
-        main_panel_layout.addStretch()
-        lay.addLayout(main_panel_layout)
+        self._main_panel_layout = QVBoxLayout(self._panel_widget)
+        self._main_panel_layout.addWidget(self._alg_box)
+        self._main_panel_layout.addWidget(self._graphics_box)
+        self._main_panel_layout.addStretch()
+        # lay.addLayout(self._main_panel_layout)
+        self._panel_widget.setLayout(self._main_panel_layout)
+        lay.addWidget(self._panel_widget)
 
         self._create_menus()
         self.setFocus()
@@ -589,8 +608,8 @@ class MainWindow(QMainWindow):
         for k in self.DATA_OPTIONS_ORDERING:
             self._combo_data_colormap.addItem(k)
 
-        #save_plots_btn = QPushButton('Save plots to PDF', self)
-        #save_plots_btn.clicked.connect(self.save_plots)
+        # save_plots_btn = QPushButton('Save plots to PDF', self)
+        # save_plots_btn.clicked.connect(self.save_plots)
 
         colormap_label = QLabel('Data Color Pallete:')
         colormap_layout = QFormLayout()
@@ -598,7 +617,7 @@ class MainWindow(QMainWindow):
 
         box_layout = QVBoxLayout()
         box_layout.addLayout(colormap_layout)
-        #box_layout.addWidget(save_plots_btn)
+        # box_layout.addWidget(save_plots_btn)
         box.setLayout(box_layout)
         box.setEnabled(False)
         return box

@@ -347,7 +347,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         Sets the callback function to call when a tooltip is drawn on this
         plot.
-        
+
         The callback function given here is called right after drawing the
         tooltip on this plot. This can be used to link several plots.
 
@@ -703,7 +703,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
                 QToolTip.setPalette(palette)
                 QToolTip.setFont(QFont('Arial', 14, QFont.Bold))
-                pos = self.mapToGlobal(QPoint(event.x, self.height() - event.y))
+                pos = self.mapToGlobal(
+                    QPoint(event.x, self.height() - event.y))
                 QToolTip.showText(pos,
                                   '{}'.format(self.curvenames[pidx]))
 
@@ -711,7 +712,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                     self._cb_notify_tooltip(self.name, pidx)
 
             if self._cb_notify_timestep:
-                self._cb_notify_timestep(self.name, timestep)
+                self._cb_notify_timestep(self.name, timestep + 1)
         else:
             if self._cb_notify_tooltip:
                 self._cb_notify_tooltip(self.name, None)
@@ -996,7 +997,8 @@ def main():
                                           color='g', marker='^')
             self.lamp.update_chart(data_changed=True)
 
-            curvenames = ['Curve-' + str(i+1) for i in range(curves.shape[0])]
+            curvenames = ['Curve-' + str(i + 1)
+                          for i in range(curves.shape[0])]
             curvenames.extend(['P10', 'P50', 'P90'])
             self.lamp.set_curvenames(curvenames)
 
