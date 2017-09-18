@@ -500,6 +500,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                                          lut=len(self.curves))
             self._curves_colors = dict((i, lines_colormap(i))
                                        for i in normal_idx)
+
             if self.curves is not None:
                 fanchart(ax=self.axes,
                          x=range(self.curves.shape[1]),

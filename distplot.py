@@ -557,6 +557,8 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             else:
                 to_erase = []
                 for i, pathcol in enumerate(self.axes.collections):
+                    if i in self._reference_idx:
+                        continue
                     contains, _ = pathcol.contains(event)
                     if contains:
                         if i in self.highlighted_data:

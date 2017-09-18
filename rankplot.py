@@ -564,7 +564,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             else:
                 to_erase = []
                 for i, line in enumerate(self._plotted_series):
-                    if not line:
+                    if not line or i in self._reference_idx:
                         continue
                     contains, _ = line[0].contains(event)
                     if contains:
