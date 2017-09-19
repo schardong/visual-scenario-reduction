@@ -293,18 +293,14 @@ class MainWindow(QMainWindow):
         Sets wheter the timestep highlight is enabled for the projection chart.
         """
         pass
-        # checked = True
-        # if state == Qt.Unchecked:
-        #    checked = False
+        # checked = (state == Qt.Checked)
         # self._plt_widget.set_timestep_highlight_enabled(checked)
 
     def set_log_scale_distchart(self, state):
         """
         Slot method to set the log-scale option in the scenario/distance plot.
         """
-        checked = True
-        if state == Qt.Unchecked:
-            checked = False
+        checked = (state == Qt.Checked)
         self._plt_widget.set_log_scale_distchart(checked)
 
     def fan_color_pallete_changed(self):
@@ -334,9 +330,7 @@ class MainWindow(QMainWindow):
         Sets wheter the group selection mode for the distance chart is
         activated or not.
         """
-        checked = True
-        if state == Qt.Unchecked:
-            checked = False
+        checked = state == Qt.Checked
         self._plt_widget.set_group_selection_distchart(checked)
 
     def set_group_selection_rankchart(self, state):
@@ -344,9 +338,7 @@ class MainWindow(QMainWindow):
         Sets wheter the group selection mode for the bump chart is
         activated or not.
         """
-        checked = True
-        if state == Qt.Unchecked:
-            checked = False
+        checked = state == Qt.Checked
         self._plt_widget.set_group_selection_rankchart(checked)
 
     def set_start_timestep_slider(self, start_ts):

@@ -54,7 +54,7 @@ class PlotWidget(QWidget):
 
         for canvas in self._child_plots.values():
             canvas.setFocusPolicy(QtCore.Qt.WheelFocus)
-            #canvas.set_notify_tooltip_callback(self.set_curve_tooltip)
+            # canvas.set_notify_tooltip_callback(self.set_curve_tooltip)
 
         lt = QGridLayout(self)
         lt.addWidget(l, 0, 0)
@@ -525,7 +525,8 @@ class PlotWidget(QWidget):
         highlighted_data = dist_plot.highlighted_data
 
         # Reseting the distance chart's curves.
-        dist_plot.set_curves(self._curves[:, ts_start:ts_end], update_chart=False)
+        dist_plot.set_curves(
+            self._curves[:, ts_start:ts_end], update_chart=False)
         color_list = ['m', 'c', 'g']
         marker_list = ['v', '<', '^']
         curve_idx = range(self.curves.shape[0] - 3, self.curves.shape[0])
@@ -535,7 +536,8 @@ class PlotWidget(QWidget):
                                           color=color_list[i],
                                           marker=marker_list[i])
 
-        # Setting the distance charts' baseline and highlighted data (both erased by the previous 'set_curves' call).
+        # Setting the distance charts' baseline and highlighted data
+        # (both erased by the previous 'set_curves' call).
         if not self.baseline_id:
             self.set_baseline_curve('p50')
         else:
