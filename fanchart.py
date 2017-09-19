@@ -134,6 +134,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._vline_props = {}
         self._plotted_lines = None
         self._time_range_poly = None
+        self._time_range = ()
         self._hovered_line = None
         self._plot_params = kwargs
         if 'linewidth' not in self._plot_params:
@@ -462,6 +463,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             self._time_range_poly = self.axes.axvspan(
                 start, end, facecolor='blue', alpha=0.2)
 
+        self._time_range = (start, end)
         self.draw()
 
     def reset_plot(self):
@@ -521,6 +523,14 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
                 # We must add the selected data over the fanchart.
                 self.update_chart(selected_data=True)
+
+                # If the time-range is set, then we must draw the time-range
+                # polygon as well.
+                if self._time_range and self._time_range[0] != 0 and self._time_range[1] != self.curves.shape[1]:
+                    self._time_range_poly = self.axes.axvspan(self._time_range[0],
+                                                              self._time_range[1],
+                                                              facecolor='blue',
+                                                              alpha=0.2)
 
         # If we have reference curves, we plot them here.
         for i in self._reference_idx:

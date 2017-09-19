@@ -145,6 +145,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._curves_colors = {}
         self._hthresh_line = None
+        self._time_range = ()
         self._time_range_poly = None
         self._group_selection = False
         self._plot_params = kwargs
@@ -439,6 +440,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self._time_range_poly = self.axes.axvspan(
                 start, end, facecolor='blue', alpha=0.2)
 
+        self._time_range = (start, end)
         self.draw()
 
     def reset_plot(self):
@@ -662,6 +664,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 self._plotted_series[i] = self.axes.plot(r, **plot_params)
 
             self.update_chart(selected_data=True)
+
+            # If the time-range is set, then we must draw the time-range
+            # polygon as well.
+            if self._time_range and self._time_range[0] != 0 and self._time_range[1] != self.curves.shape[1]:
+                self._time_range_poly = self.axes.axvspan(self._time_range[0],
+                                                          self._time_range[1],
+                                                          facecolor='blue',
+                                                          alpha=0.2)
 
         if 'apply_transforms' in kwargs:
             self._zoomhandler.apply_zoom()
