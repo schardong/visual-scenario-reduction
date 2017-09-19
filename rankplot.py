@@ -145,6 +145,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._curves_colors = {}
         self._hthresh_line = None
+        self._time_range_poly = None
         self._group_selection = False
         self._plot_params = kwargs
         if 'picker' not in self._plot_params:
@@ -254,7 +255,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         """
         Sets the callback function to call when a tooltip is drawn on this
         plot.
-        
+
         The callback function given here is called right after drawing the
         tooltip on this plot. This can be used to link several plots.
 
@@ -430,7 +431,15 @@ class RankChart(FigureCanvas, BrushableCanvas):
         end: int
             The final timestep, this range is inclusive
         """
-        pass
+        if self._time_range_poly:
+            self._time_range_poly.set_visible(False)
+        if self.curves is None:
+            return
+        if not (start == 0 and end == self.curves.shape[1]):
+            self._time_range_poly = self.axes.axvspan(
+                start, end, facecolor='blue', alpha=0.2)
+
+        self.draw()
 
     def reset_plot(self):
         """
@@ -444,7 +453,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
     def cb_mouse_motion(self, event):
         """
         Callback to process a mouse movement event.
-        
+
         If the group selection option is enabled, then any points with
         Y-coordinate less than the cursor's Y-coordinate will be marked in a
         different opacity level, but not highlighted. If the user clicks with
@@ -510,7 +519,8 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
                 QToolTip.setPalette(palette)
                 QToolTip.setFont(QFont('Arial', 14, QFont.Bold))
-                pos = self.mapToGlobal(QPoint(event.x, self.height() - event.y))
+                pos = self.mapToGlobal(
+                    QPoint(event.x, self.height() - event.y))
                 QToolTip.showText(pos,
                                   '{}'.format(self.curvenames[hover_idx]))
             else:
@@ -548,7 +558,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             if self.group_selection_enabled:
                 # Checking if there is any selected data. If there is, we pop a
                 # confirmation dialog to the user.
-                #if self.highlighted_data:
+                # if self.highlighted_data:
                 #    title = 'Override selection'
                 #    msg = 'Are you sure you wish to make a new selection?\nThe old selection will be erased.'
                 #    ans = self.parent_canvas.popup_question_dialog(title, msg)

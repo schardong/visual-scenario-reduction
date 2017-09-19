@@ -120,11 +120,9 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         # Data setup
         self._curves = None
         self._percentiles = q
-        self._plotted_lines = None
         self._reference_idx = set()
         self._highlighted_ts = None
         self._curvenames = None
-        self._hovered_line = None
 
         # Plot styles
         self._plot_title = self.base_plot_name()
@@ -134,6 +132,9 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._reference_parameters = {}
         self._vline = None
         self._vline_props = {}
+        self._plotted_lines = None
+        self._time_range_poly = None
+        self._hovered_line = None
         self._plot_params = kwargs
         if 'linewidth' not in self._plot_params:
             self._plot_params['linewidth'] = 1.5
@@ -453,7 +454,15 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         end: int
             The final timestep, this range is inclusive
         """
-        pass
+        if self._time_range_poly:
+            self._time_range_poly.set_visible(False)
+        if self.curves is None:
+            return
+        if not (start == 0 and end == self.curves.shape[1]):
+            self._time_range_poly = self.axes.axvspan(
+                start, end, facecolor='blue', alpha=0.2)
+
+        self.draw()
 
     def reset_plot(self):
         """
