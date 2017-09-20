@@ -497,12 +497,15 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
 
                 if hover_idx is not None:
                     palette = QPalette()
-                    palette.setColor(QPalette.ToolTipBase, QColor(252, 243, 207))
+                    palette.setColor(QPalette.ToolTipBase,
+                                     QColor(252, 243, 207))
                     palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
                     QToolTip.setPalette(palette)
                     QToolTip.setFont(QFont('Arial', 14, QFont.Bold))
-                    pos = self.mapToGlobal(QPoint(event.x, self.height() - event.y))
-                    QToolTip.showText(pos, '{}'.format(self.curvenames[hover_idx]))
+                    pos = self.mapToGlobal(
+                        QPoint(event.x, self.height() - event.y))
+                    QToolTip.showText(pos, '{}'.format(
+                        self.curvenames[hover_idx]))
                 else:
                     QToolTip.hideText()
 
@@ -535,15 +538,6 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             # with the mouse pointer and add them to the list of paths to
             # highlight.
             if self.group_selection_enabled:
-                # Checking if there is any selected data. If there is, we pop a
-                # confirmation dialog to the user.
-                #if self.highlighted_data:
-                #    title = 'Override selection'
-                #    msg = 'Are you sure you wish to make a new selection?\nThe old selection will be erased.'
-                #    ans = self.parent_canvas.popup_question_dialog(title, msg)
-                #    if not ans:
-                #        return True
-
                 self.highlight_data(self.highlighted_data, erase=True,
                                     update_chart=False)
 
@@ -617,9 +611,19 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         if 'data_changed' in kwargs:
             self.axes.cla()
             self.axes.set_title(self.plot_title)
-            self.axes.set_xlabel('Scenario')
+            fmt_xlab = 'Scenario ({} baseline)'
+            if not self.curvenames:
+                fmt_xlab = fmt_xlab.format(self._baseline_idx)
+            else:
+                fmt_xlab = fmt_xlab.format(
+                    self._curvenames[self._baseline_idx])
+
+            self.axes.set_xlabel(fmt_xlab)
             self.axes.set_ylabel('Distance')
             self.axes.set_xlim([0, self.curves.shape[0] + 1])
+            self.axes.spines['bottom'].set_linewidth(2.5)
+            self.axes.spines['bottom'].set_color(
+                self._reference_parameters[self._baseline_idx]['color'])
             self._point_artists = [None] * self.curves.shape[0]
 
             X, P = self._build_distance_plot_data()
@@ -810,7 +814,8 @@ def main():
             self._sld_timestep_start.setMinimum(0)
             self._sld_timestep_start.setSingleStep(1)
             self._sld_timestep_start.setPageStep(5)
-            self._sld_timestep_start.valueChanged.connect(self.set_start_timestep)
+            self._sld_timestep_start.valueChanged.connect(
+                self.set_start_timestep)
 
             self._sld_timestep_end = QSlider(Qt.Horizontal, self)
             self._sld_timestep_end.setMinimum(0)
@@ -861,7 +866,8 @@ def main():
                                                 False, color='g', marker='^',
                                                 s=50)
             self.dist_chart.set_baseline_curve(self.curves.shape[0] - 2, True)
-            curvenames = ['Curve-' + str(i+1) for i in range(curves.shape[0])]
+            curvenames = ['Curve-' + str(i + 1)
+                          for i in range(curves.shape[0])]
             curvenames.extend(['Perc10', 'Perc50', 'Perc90'])
             self.dist_chart.set_curvenames(curvenames)
 
