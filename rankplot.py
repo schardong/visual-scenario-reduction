@@ -73,7 +73,8 @@ def rank_series(curves_data,
             if dist == 0 and idx != baseline_idx:
                 D[idx] += 1e-6
 
-        R[np.argsort(D), ts - 1] = range(x)
+        idx = np.argsort(D)[::-1]
+        R[idx, ts - 1] = range(1, x + 1)
 
     return R
 
@@ -494,10 +495,12 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if event.xdata is None or event.ydata is None or self._rank_series is None:
             return True
 
+        # If the group selection is enabled, we show a preview of all curves
+        # that will be highlighted should the user click the mouse button.
         if self.group_selection_enabled:
             tstep = int(event.xdata + 0.5)
             for i, series in enumerate(self._rank_series):
-                if series[tstep] >= event.ydata and self._is_normal_curve_idx(i):
+                if series[tstep] < event.ydata and self._is_normal_curve_idx(i):
                     self.axes.lines[i].set_color(cm.gray(200))
 
             self._hthresh_line = self.axes.axhline(y=event.ydata, c='b',
@@ -558,20 +561,11 @@ class RankChart(FigureCanvas, BrushableCanvas):
             # with the mouse pointer and add them to the list of lines to
             # highlight.
             if self.group_selection_enabled:
-                # Checking if there is any selected data. If there is, we pop a
-                # confirmation dialog to the user.
-                # if self.highlighted_data:
-                #    title = 'Override selection'
-                #    msg = 'Are you sure you wish to make a new selection?\nThe old selection will be erased.'
-                #    ans = self.parent_canvas.popup_question_dialog(title, msg)
-                #    if not ans:
-                #        return True
-
                 self.highlight_data(self.highlighted_data, erase=True,
                                     update_chart=False)
                 ts = int(event.xdata + 0.5)
                 for i, l in enumerate(self._rank_series):
-                    if l[ts] < event.ydata and self._is_normal_curve_idx(i):
+                    if l[ts] > event.ydata and self._is_normal_curve_idx(i):
                         to_highlight.append(i)
             else:
                 to_erase = []
@@ -638,7 +632,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self.axes.set_xlabel('Timestep')
             self.axes.set_ylabel('Rank')
             xmax = self._curves.shape[1] - 1
-            ymax = self._curves.shape[0] + 1
+            ymax = self._curves.shape[0]
             self.axes.set_xlim([0, xmax])
             self.axes.set_ylim([0, ymax])
             self._plotted_series = [None] * self.curves.shape[0]
