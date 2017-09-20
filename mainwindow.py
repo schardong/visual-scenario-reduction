@@ -75,7 +75,7 @@ class MainWindow(QMainWindow):
         self._base_data_path = ''
         self._full_data_path = ''
         self._curr_property = None
-        self._curr_baseline = 'p50'
+        self._curr_baseline = 'P50'
         self._well_type = self.WELL_TYPES[0]
 
         # UI elements
@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
             The ID of the new baseline. Possible values are: 'p10', 'p50' and
             'p90'.
         """
-        if new_baseline not in ['p10', 'p50', 'p90']:
+        if new_baseline not in ['P10', 'P50', 'P90']:
             raise ValueError('New baseline (%s) is unknown.' % new_baseline)
         self._curr_baseline = new_baseline
 
@@ -563,9 +563,9 @@ class MainWindow(QMainWindow):
 
         label_baseline = QLabel('Baseline: ', self._main_widget)
         self._combo_baseline = QComboBox(self._main_widget)
-        self._combo_baseline.addItem('p10')
-        self._combo_baseline.addItem('p50')
-        self._combo_baseline.addItem('p90')
+        self._combo_baseline.addItem('P10')
+        self._combo_baseline.addItem('P50')
+        self._combo_baseline.addItem('P90')
         self._combo_baseline.setCurrentIndex(1)
         self._combo_baseline.currentIndexChanged.connect(self.baseline_changed)
 

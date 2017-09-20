@@ -31,7 +31,7 @@ class PlotWidget(QWidget):
         self._cmap_name = 'rainbow'
         self._property_name = ''
         self._curvenames = None
-        self._baseline_id = 'p50'
+        self._baseline_id = 'P50'
 
         self._child_plots = {}
         f = Fanchart(canvas_name='fan', parent=self)
@@ -262,7 +262,7 @@ class PlotWidget(QWidget):
                                            marker=marker_list[i])
 
         if not self.baseline_id:
-            self.set_baseline_curve('p50')
+            self.set_baseline_curve('P50')
         else:
             self.set_baseline_curve(self.baseline_id)
 
@@ -292,14 +292,13 @@ class PlotWidget(QWidget):
         baseline_id: str
            The ID of the baseline curve. Possible values are: p10, p50 and p90.
         '''
-        if not (baseline_id == 'p10' or baseline_id == 'p50' or
-                baseline_id == 'p90'):
-            fmt = r'Invalid baseline given: {}. Possible values are: \'p10\', \'p50\, \'p90\'.'
+        if not (baseline_id in ['P10', 'P50', 'P90']):
+            fmt = r'Invalid baseline given: {}. Possible values are: \'P10\', \'P50\, \'P90\'.'
             raise ValueError(fmt.format(baseline_id))
 
-        id_to_idx = {'p10': self.curves.shape[0] - 3,
-                     'p50': self.curves.shape[0] - 2,
-                     'p90': self.curves.shape[0] - 1}
+        id_to_idx = {'P10': self.curves.shape[0] - 3,
+                     'P50': self.curves.shape[0] - 2,
+                     'P90': self.curves.shape[0] - 1}
 
         self._child_plots['rank'].set_baseline_curve(id_to_idx[baseline_id],
                                                      update_chart=True)
@@ -539,7 +538,7 @@ class PlotWidget(QWidget):
         # Setting the distance charts' baseline and highlighted data
         # (both erased by the previous 'set_curves' call).
         if not self.baseline_id:
-            self.set_baseline_curve('p50')
+            self.set_baseline_curve('P50')
         else:
             self.set_baseline_curve(self.baseline_id)
 
