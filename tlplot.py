@@ -497,6 +497,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated now.
         """
         self._plot_points = plot_points
+        if not self._plot_points and not self._plot_lines:
+            self.set_plot_lines(True, update_chart=update_chart)
+            return
         if update_chart:
             self.update_chart(plot_glyph=True)
 
@@ -512,6 +515,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated now.
         """
         self._plot_lines = plot_lines
+        if not self._plot_lines and not self._plot_points:
+            self.set_plot_points(True, update_chart=update_chart)
+            return
         if update_chart:
             self.update_chart(plot_glyph=True)
 

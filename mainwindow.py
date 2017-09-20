@@ -273,20 +273,22 @@ class MainWindow(QMainWindow):
         Slot method to set the plot points option in the time lapse projection
         plot.
         """
-        checked = True
-        if state == Qt.Unchecked:
-            checked = False
+        checked = (state == Qt.Checked)
         self._plt_widget.set_plot_points_tlchart(checked)
+
+        if not checked and not self._chk_plot_lines.isChecked():
+            self._chk_plot_lines.setChecked(True)
 
     def set_plot_lines_tlchart(self, state):
         """
         Slot method to set the plot lines option in the time lapse projection
         plot.
         """
-        checked = True
-        if state == Qt.Unchecked:
-            checked = False
+        checked = (state == Qt.Checked)
         self._plt_widget.set_plot_lines_tlchart(checked)
+
+        if not checked and not self._chk_plot_points.isChecked():
+            self._chk_plot_points.setChecked(True)
 
     def set_ts_highlight_tlchart(self, state):
         """
@@ -626,21 +628,21 @@ class MainWindow(QMainWindow):
         """
         box = QGroupBox('Time-lapsed LAMP Chart', self)
 
-        chk_plot_points = QCheckBox('Show points', self._main_widget)
-        chk_plot_points.stateChanged.connect(self.set_plot_points_tlchart)
-        chk_plot_points.setChecked(self._plt_widget.get_plot_points_tlchart())
+        self._chk_plot_points = QCheckBox('Show points', self._main_widget)
+        self._chk_plot_points.stateChanged.connect(self.set_plot_points_tlchart)
+        self._chk_plot_points.setChecked(self._plt_widget.get_plot_points_tlchart())
 
-        chk_plot_lines = QCheckBox('Show lines', self._main_widget)
-        chk_plot_lines.setChecked(self._plt_widget.get_plot_lines_tlchart())
-        chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
+        self._chk_plot_lines = QCheckBox('Show lines', self._main_widget)
+        self._chk_plot_lines.setChecked(self._plt_widget.get_plot_lines_tlchart())
+        self._chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
 
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
         # chk_ts_highlight.stateChanged.connect(self.set_ts_highlight_tlchart)
 
         box_layout = QVBoxLayout()
-        box_layout.addWidget(chk_plot_points)
-        box_layout.addWidget(chk_plot_lines)
+        box_layout.addWidget(self._chk_plot_points)
+        box_layout.addWidget(self._chk_plot_lines)
         # box_layout.addWidget(chk_ts_highlight)
         box.setLayout(box_layout)
         box.setEnabled(False)
