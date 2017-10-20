@@ -15,8 +15,7 @@ from PyQt5.QtWidgets import QSizePolicy, QToolTip
 from PyQt5.QtGui import QFont, QPalette, QColor
 
 from brushableplot import BrushableCanvas
-from zoomhandler import ZoomHandler
-from panhandler import PanHandler
+from zoompanhandler import ZoomPanHandler
 
 
 def rank_series(curves_data,
@@ -129,8 +128,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self.setParent(parent)
         BrushableCanvas.__init__(self, canvas_name, parent)
 
-        self._zoomhandler = ZoomHandler(self.axes)
-        self._panhandler = PanHandler(self.axes, 3)
+        self._zphandler = ZoomPanHandler(self.axes, scale_factor=1.5)
 
         # Data setup
         self._curves = None
@@ -448,8 +446,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
         """
         Resets the plot state, undoing all zoom and pan actions.
         """
-        self._zoomhandler.reset_zoom()
-        self._panhandler.reset_pan()
         self.update_chart(data_changed=True)
 
     # Callback methods
@@ -667,14 +663,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
                                                           facecolor='blue',
                                                           alpha=0.2)
 
-        if 'apply_transforms' in kwargs:
-            self._zoomhandler.apply_zoom()
-            self._panhandler.apply_pan()
-        if 'apply_zoom' in kwargs:
-            self._zoomhandler.apply_zoom()
-        if 'apply_pan' in kwargs:
-            self._panhandler.apply_pan()
-
         self.draw()
 
     # Private methods
@@ -687,8 +675,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
             'motion_notify_event', self.cb_mouse_motion)
         self._cb_mouse_button_id = fig.canvas.mpl_connect(
             'button_press_event', self.cb_mouse_button)
-        self._cb_scrollwheel_id = fig.canvas.mpl_connect(
-            'scroll_event', self._zoomhandler)
         self._cb_axes_leave_id = fig.canvas.mpl_connect(
             'axes_leave_event', self.cb_axes_leave)
         self._cb_fig_leave_id = fig.canvas.mpl_connect(
@@ -705,9 +691,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if self._cb_mouse_button_id:
             fig.canvas.mpl_disconnect(self._cb_mouse_button_id)
             self._cb_mouse_button_id = None
-        if self._cb_scrollwheel_id:
-            fig.canvas.mpl_disconnect(self._cb_scrollwheel_id)
-            self._cb_scrollwheel_id = None
         if self._cb_axes_leave_id:
             fig.canvas.mpl_disconnect(self._cb_axes_leave_id)
             self._cb_axes_leave_id = None

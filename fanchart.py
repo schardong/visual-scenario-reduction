@@ -10,8 +10,7 @@ from matplotlib import cm
 from PyQt5.QtWidgets import QSizePolicy
 
 from brushableplot import BrushableCanvas
-from zoomhandler import ZoomHandler
-from panhandler import PanHandler
+from zoompanhandler import ZoomPanHandler
 
 
 def fanchart(ax, x, y, q=np.arange(0, 110, 10),
@@ -114,8 +113,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self.setParent(parent)
         BrushableCanvas.__init__(self, canvas_name, parent)
 
-        self._zoomhandler = ZoomHandler(self.axes)
-        self._panhandler = PanHandler(self.axes, 3)
+        self._zphandler = ZoomPanHandler(self.axes, scale_factor=1.5)
 
         # Data setup
         self._curves = None
@@ -140,13 +138,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         if 'linewidth' not in self._plot_params:
             self._plot_params['linewidth'] = 1.5
 
-        # Callback IDs
-        self._cb_scrollwheel_id = None
-
-        self._connect_cb()
-
     def __del__(self):
-        self._disconnect_cb()
         self._axes = None
         self._curves = None
         self._percentiles = None
@@ -470,8 +462,6 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         Resets the plot state, undoing all zoom and pan actions.
         """
-        self._zoomhandler.reset_zoom()
-        self._panhandler.reset_pan()
         self.update_chart(data_changed=True)
 
     def update_chart(self, **kwargs):
@@ -547,33 +537,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                 self._vline = self.axes.axvline(x=self.highlighted_timestep,
                                                 **self._vline_props)
 
-        if 'apply_transforms' in kwargs:
-            self._zoomhandler.apply_zoom()
-            self._panhandler.apply_pan()
-        if 'apply_zoom' in kwargs:
-            self._zoomhandler.apply_zoom()
-        if 'apply_pan' in kwargs:
-            self._panhandler.apply_pan()
-
         self.draw()
-
-    # Private methods
-    def _connect_cb(self):
-        """
-        Connects the callbacks to the matplotlib canvas.
-        """
-        fig = self.figure
-        self._cb_scrollwheel_id = fig.canvas.mpl_connect(
-            'scroll_event', self._zoomhandler)
-
-    def _disconnect_cb(self):
-        """
-        Detaches the callbacks from the matplotlib canvas.
-        """
-        fig = self.figure
-        if self._cb_scrollwheel_id:
-            fig.canvas.mpl_disconnect(self._cb_scrollwheel_id)
-            self._cb_scrollwheel_id = None
 
 
 def main():
