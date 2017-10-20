@@ -21,7 +21,8 @@ from zoompanhandler import ZoomPanHandler
 def rank_series(curves_data,
                 baseline_idx,
                 window_length=None,
-                metric='euclidean'):
+                metric='euclidean',
+                inverted=False):
     """
     Builds a distance based ranking of the input data compared to the baseline
     data. The closer the a curve is to the baseline, the better (smaller) it's
@@ -43,6 +44,10 @@ def rank_series(curves_data,
     metric: str
         The distance metric to use when ranking. Accepted metrics are the same
         as the scipy.spatial.distance.pdist function.
+    inverted: boolean
+        True to indicate that the highest ranks will represent the closest
+        curves, False indicates that the lowest ranks will represent the
+        closest curves.
 
     Returns
     -------
@@ -72,8 +77,12 @@ def rank_series(curves_data,
             if dist == 0 and idx != baseline_idx:
                 D[idx] += 1e-6
 
-        idx = np.argsort(D)[::-1]
-        R[idx, ts - 1] = range(1, x + 1)
+        if inverted:
+            idx = np.argsort(D)[::-1]
+            R[idx, ts - 1] = range(1, x + 1)
+        else:
+            idx = np.argsort(D)
+            R[idx, ts - 1] = range(x)
 
     return R
 
@@ -137,6 +146,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._rank_series = None
         self._curvenames = None
         self._plotted_series = None
+        self._rank_inverted = False
 
         # Plot style setup
         self._plot_title = self.base_plot_name()
@@ -239,6 +249,13 @@ class RankChart(FigureCanvas, BrushableCanvas):
         Returns the names of the curves.
         """
         return self._curvenames
+
+    @property
+    def rank_inverted(self):
+        """
+        Returns wheter the ranks are inverted or not.
+        """
+        return self._rank_inverted
 
     def set_group_selection_enabled(self, enable):
         """
@@ -416,6 +433,25 @@ class RankChart(FigureCanvas, BrushableCanvas):
             A list containing the data point's names.
         """
         self._curvenames = curvenames
+
+    def set_rank_inverted(self, inverted, update_chart=True):
+        """
+        Sets wheter the ranks should be inverted (highest ranks nearer the X
+        axis) or not.
+
+        Parameters
+        ----------
+        inverted : boolean
+            True to indicate that the ranks should be inverted, False
+            otherwise. When the ranks are inverted, the closest curves
+            will be represented by the numerically larger ranks.
+        update_chart: boolean
+            Switch to indicate if the plot should be updated. Default value
+            is True.
+        """
+        self._rank_inverted = inverted
+        if update_chart:
+            self.update_chart(data_changed=True)
 
     def mark_timestep_range(self, start, end):
         """
@@ -633,7 +669,8 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self.axes.set_ylim([0, ymax])
             self._plotted_series = [None] * self.curves.shape[0]
 
-            self._rank_series = rank_series(self._curves, self._baseline_idx)
+            self._rank_series = rank_series(self._curves, self._baseline_idx,
+                                            inverted=self.rank_inverted)
 
             normal_idx = [i for i in range(len(self._rank_series))
                           if self._is_normal_curve_idx(i)]
@@ -753,6 +790,8 @@ def main():
             group_sel.stateChanged.connect(self.set_group_selection)
             reset_button = QPushButton('Reset view', self)
             reset_button.clicked.connect(self.reset_plot)
+            rank_inverted = QPushButton('Invert rank', self)
+            rank_inverted.clicked.connect(self.set_rank_inverted)
 
             self.main_widget = QWidget(self)
             l = QHBoxLayout(self.main_widget)
@@ -763,6 +802,7 @@ def main():
             button_layout.addWidget(p90_baseline_button)
             button_layout.addWidget(rand_data)
             button_layout.addWidget(group_sel)
+            button_layout.addWidget(rank_inverted)
             button_layout.addWidget(reset_button)
             l.addLayout(button_layout)
 
@@ -805,6 +845,10 @@ def main():
             if i == QtCore.Qt.Unchecked:
                 check = False
             self.rank_chart.set_group_selection_enabled(check)
+
+        def set_rank_inverted(self):
+            self.rank_chart.set_rank_inverted(
+                not self.rank_chart.rank_inverted)
 
         def popup_question_dialog(self, title, question):
             msg = QMessageBox(QMessageBox.Question, title, question,
