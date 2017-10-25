@@ -57,8 +57,8 @@ class PlotWidget(QWidget):
             # canvas.set_notify_tooltip_callback(self.set_curve_tooltip)
 
         lt = QGridLayout(self)
-        lt.addWidget(l, 0, 0)
-        lt.addWidget(f, 0, 1)
+        lt.addWidget(f, 0, 0)
+        lt.addWidget(l, 0, 1)
         lt.addWidget(r, 1, 0)
         lt.addWidget(d, 1, 1)
         self.setLayout(lt)

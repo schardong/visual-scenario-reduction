@@ -154,6 +154,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._curves_colors = {}
         self._hthresh_line = None
+        self._ts_line = None
         self._time_range = ()
         self._time_range_poly = None
         self._group_selection = False
@@ -162,6 +163,8 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self._plot_params['picker'] = 2
         if 'linewidth' not in self._plot_params:
             self._plot_params['linewidth'] = 1.5
+
+        self._perctext = None
 
         # Callback IDs
         self._cb_mouse_move_id = None
@@ -508,14 +511,21 @@ class RankChart(FigureCanvas, BrushableCanvas):
         # We remove the horizonal line here (if any), regardless of the mouse
         # cursor position. We also restore the lines colors.
         if self._hthresh_line:
-            lsize = len(self.axes.lines)
-            del self.axes.lines[lsize - 1]
+            for i, l in enumerate(self.axes.lines):
+                if l == self._hthresh_line:
+                    del self.axes.lines[i]
+                    break
             self._hthresh_line = None
 
             for i, line in enumerate(self.axes.lines):
                 if self._is_normal_curve_idx(i):
                     line.set_color(self._curves_colors[i])
-            self.draw()
+
+        if self._ts_line:
+            for i, l in enumerate(self.axes.lines):
+                if l == self._ts_line:
+                    del self.axes.lines[i]
+                    break
 
         # Restoring the lines' widths.
         if self._plotted_series:
@@ -524,16 +534,25 @@ class RankChart(FigureCanvas, BrushableCanvas):
                     continue
                 art[0].set_linewidth(self._plot_params['linewidth'])
 
+        self.draw()
+
         if event.xdata is None or event.ydata is None or self._rank_series is None:
             return True
+
+        self._ts_line = self.axes.axvline(x=event.xdata, c='b', ls='--')
 
         # If the group selection is enabled, we show a preview of all curves
         # that will be highlighted should the user click the mouse button.
         if self.group_selection_enabled:
             tstep = int(event.xdata + 0.5)
-            for i, series in enumerate(self._rank_series):
-                if series[tstep] < event.ydata and self._is_normal_curve_idx(i):
-                    self.axes.lines[i].set_color(cm.gray(200))
+            if self.rank_inverted:
+                for i, series in enumerate(self._rank_series):
+                    if series[tstep] < event.ydata and self._is_normal_curve_idx(i):
+                        self.axes.lines[i].set_color(cm.gray(200))
+            else:
+                for i, series in enumerate(self._rank_series):
+                    if series[tstep] > event.ydata and self._is_normal_curve_idx(i):
+                        self.axes.lines[i].set_color(cm.gray(200))
 
             self._hthresh_line = self.axes.axhline(y=event.ydata, c='b',
                                                    linewidth=2)
@@ -596,9 +615,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 self.highlight_data(self.highlighted_data, erase=True,
                                     update_chart=False)
                 ts = int(event.xdata + 0.5)
-                for i, l in enumerate(self._rank_series):
-                    if l[ts] > event.ydata and self._is_normal_curve_idx(i):
-                        to_highlight.append(i)
+                if self.rank_inverted:
+                    for i, l in enumerate(self._rank_series):
+                        if l[ts] > event.ydata and self._is_normal_curve_idx(i):
+                            to_highlight.append(i)
+                else:
+                    for i, l in enumerate(self._rank_series):
+                        if l[ts] < event.ydata and self._is_normal_curve_idx(i):
+                            to_highlight.append(i)
             else:
                 to_erase = []
                 for i, line in enumerate(self._plotted_series):
@@ -667,6 +691,26 @@ class RankChart(FigureCanvas, BrushableCanvas):
             ymax = self._curves.shape[0]
             self.axes.set_xlim([0, xmax])
             self.axes.set_ylim([0, ymax])
+
+            spine = 'bottom'
+            ospine = 'top'
+            ycoord = 0.065
+            if self._rank_inverted:
+                spine = 'top'
+                ospine = 'bottom'
+                ycoord = 0.9
+            self.axes.spines[spine].set_linewidth(2.5)
+            self.axes.spines[spine].set_color(
+                self._reference_parameters[self._baseline_idx]['color'])
+            self.axes.spines[ospine].set_linewidth(1.0)
+            self.axes.spines[ospine].set_color('black')
+            if self._perctext:
+                self._perctext.remove()
+            if self.curvenames:
+                self._perctext = self.axes.figure.text(
+                    0.9, ycoord, self.curvenames[self._baseline_idx],
+                    color=self._reference_parameters[self._baseline_idx]['color'])
+
             self._plotted_series = [None] * self.curves.shape[0]
 
             self._rank_series = rank_series(self._curves, self._baseline_idx,
