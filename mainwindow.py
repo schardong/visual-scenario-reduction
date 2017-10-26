@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
                              QDesktopWidget, QFileDialog, QFormLayout,
                              QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                              QLineEdit, QMainWindow, QMenu, QMessageBox,
-                             QPushButton, QStyleFactory, QVBoxLayout,
+                             QPushButton, QSpinBox, QStyleFactory, QVBoxLayout,
                              QWidget, QSlider)
 
 from fieldensemble import FieldEnsemble
@@ -88,10 +88,8 @@ class MainWindow(QMainWindow):
         self._chk_show_p10 = None
         self._chk_show_p50 = None
         self._chk_show_p90 = None
-        self._text_start_ts = None
-        self._text_end_ts = None
-        self._sld_start_ts = None
-        self._sld_end_ts = None
+        self._spin_start_ts = None
+        self._spin_end_ts = None
         self._main_widget = None
         self._panel_widget = None
 
@@ -343,109 +341,37 @@ class MainWindow(QMainWindow):
         checked = state == Qt.Checked
         self._plt_widget.set_group_selection_rankchart(checked)
 
-    def set_start_timestep_slider(self, start_ts):
+    def set_start_timestep(self, value):
         """
-        Method called when the start timestep slider's value is changed. This
-        method checks if the time range is valid (start_ts < end_ts) and sets
-        the corresponding UI elements' values accordingly (textboxes and
-        sliders, if necessary).
+        Slot called when the start timestep is changed. When that happens, the
+        new value is tested, and, if larger than the end timestep, then the
+        end timestep is set as value + 1.
         """
-        start_min, _ = self._plt_widget.max_timerange
+        start_min, end_max = self._plt_widget.max_timerange
         _, end_ts = self._plt_widget.timerange
 
-        if start_ts >= end_ts:
-            if start_ts > start_min:
-                start_ts = end_ts - 1
-            else:
-                end_ts = start_ts + 1
+        if value >= end_ts:
+            if value < end_max:
+                end_ts = value + 1
+                self._spin_end_ts.setValue(end_ts)
 
-        self._sld_start_ts.setValue(start_ts)
-        self._sld_end_ts.setValue(end_ts)
-        self._text_start_ts.setText(str(start_ts))
-        self._text_end_ts.setText(str(end_ts))
+        self._plt_widget.set_timestep_range(value, end_ts)
 
-        self._plt_widget.set_timestep_range(start_ts, end_ts)
-
-    def set_end_timestep_slider(self, end_ts):
+    def set_end_timestep(self, value):
         """
-        Method called when the final timestep slider's value is changed. This
-        method checks if the time range is valid (start_ts < end_ts) and sets
-        the corresponding UI elements' values accordingly (textboxes and
-        sliders, if necessary).
+        Slot called when the end timestep is changed. When that happens, the
+        new value is tested against the start timestep and, if smaller, then
+        the start timestep is set as value - 1.
         """
-        _, end_max = self._plt_widget.max_timerange
+        start_min, end_max = self._plt_widget.max_timerange
         start_ts, _ = self._plt_widget.timerange
 
-        if start_ts >= end_ts:
-            if end_ts < end_max:
-                end_ts = start_ts + 1
-            else:
-                start_ts = end_ts - 1
+        if value <= start_ts:
+            if value > start_min:
+                start_ts = value - 1
+                self._spin_start_ts.setValue(start_ts)
 
-        self._sld_start_ts.setValue(start_ts)
-        self._sld_end_ts.setValue(end_ts)
-        self._text_start_ts.setText(str(start_ts))
-        self._text_end_ts.setText(str(end_ts))
-
-        self._plt_widget.set_timestep_range(start_ts, end_ts)
-
-    def set_start_timestep_text(self):
-        """
-        Method called when the start timestep text box value is changed. This
-        method checks if the time range is valid (start_ts < end_ts) and sets
-        the corresponding UI elements' values accordingly (textboxes and
-        sliders, if necessary).
-        """
-        start_min, _ = self._plt_widget.max_timerange
-        _, end_ts = self._plt_widget.timerange
-        start_ts = 0
-
-        try:
-            start_ts = int(self._text_start_ts.text())
-        except ValueError:
-            pass
-
-        if start_ts >= end_ts:
-            if start_ts > start_min:
-                start_ts = end_ts - 1
-            else:
-                end_ts = start_ts = 1
-
-        self._sld_start_ts.setValue(start_ts)
-        self._sld_end_ts.setValue(end_ts)
-        self._text_start_ts.setText(str(start_ts))
-        self._text_end_ts.setText(str(end_ts))
-
-        self._plt_widget.set_timestep_range(start_ts, end_ts)
-
-    def set_end_timestep_text(self):
-        """
-        Method called when the final timestep text box value is changed. This
-        method checks if the time range is valid (start_ts < end_ts) and sets
-        the corresponding UI elements' values accordingly (textboxes and
-        sliders, if necessary).
-        """
-        _, end_max = self._plt_widget.max_timerange
-        start_ts, _ = self._plt_widget.timerange
-        end_ts = end_max
-
-        try:
-            end_ts = int(self._text_end_ts.text())
-        except ValueError:
-            pass
-
-        if start_ts >= end_ts:
-            if end_ts < end_max:
-                end_ts = start_ts + 1
-            else:
-                start_ts = end_ts - 1
-
-        self._sld_start_ts.setValue(start_ts)
-        self._sld_end_ts.setValue(end_ts)
-        self._text_start_ts.setText(str(start_ts))
-        self._text_end_ts.setText(str(end_ts))
-
-        self._plt_widget.set_timestep_range(start_ts, end_ts)
+        self._plt_widget.set_timestep_range(start_ts, value)
 
     def update_data(self, **kwargs):
         """
@@ -474,19 +400,11 @@ class MainWindow(QMainWindow):
                 self._plt_widget.fan_is_showing_p90())
 
             start_ts, end_ts = self._plt_widget.max_timerange
-            self._sld_start_ts.setMaximum(end_ts)
-            self._sld_start_ts.setValue(start_ts)
+            self._spin_start_ts.setMaximum(end_ts)
+            self._spin_start_ts.setValue(start_ts)
 
-            self._text_start_ts.setValidator(
-                QIntValidator(start_ts, end_ts, self._text_start_ts))
-            self._text_start_ts.setText(str(start_ts))
-
-            self._sld_end_ts.setMaximum(end_ts)
-            self._sld_end_ts.setValue(end_ts)
-
-            self._text_end_ts.setValidator(
-                QIntValidator(start_ts, end_ts, self._text_end_ts))
-            self._text_end_ts.setText(str(end_ts))
+            self._spin_end_ts.setMaximum(end_ts)
+            self._spin_end_ts.setValue(end_ts)
 
             QApplication.restoreOverrideCursor()
         if 'baseline_changed' in kwargs:
@@ -629,11 +547,14 @@ class MainWindow(QMainWindow):
         box = QGroupBox('Time-lapsed LAMP Chart', self)
 
         self._chk_plot_points = QCheckBox('Show points', self._main_widget)
-        self._chk_plot_points.stateChanged.connect(self.set_plot_points_tlchart)
-        self._chk_plot_points.setChecked(self._plt_widget.get_plot_points_tlchart())
+        self._chk_plot_points.stateChanged.connect(
+            self.set_plot_points_tlchart)
+        self._chk_plot_points.setChecked(
+            self._plt_widget.get_plot_points_tlchart())
 
         self._chk_plot_lines = QCheckBox('Show lines', self._main_widget)
-        self._chk_plot_lines.setChecked(self._plt_widget.get_plot_lines_tlchart())
+        self._chk_plot_lines.setChecked(
+            self._plt_widget.get_plot_lines_tlchart())
         self._chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
 
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
@@ -673,37 +594,47 @@ class MainWindow(QMainWindow):
         lbl_start_ts = QLabel('Start time', self._main_widget)
         lbl_end_ts = QLabel('End time', self._main_widget)
 
-        self._text_start_ts = QLineEdit(self._main_widget)
-        self._text_start_ts.setMaximumWidth(50)
-        self._text_start_ts.setText('')
-        self._text_start_ts.returnPressed.connect(self.set_start_timestep_text)
+        self._spin_start_ts = QSpinBox(self._main_widget)
+        self._spin_start_ts.setValue(0)
+        self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
-        self._text_end_ts = QLineEdit(self._main_widget)
-        self._text_end_ts.setMaximumWidth(50)
-        self._text_end_ts.setText('')
-        self._text_end_ts.returnPressed.connect(self.set_end_timestep_text)
+        self._spin_end_ts = QSpinBox(self._main_widget)
+        self._spin_end_ts.setValue(0)
+        self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
 
-        self._sld_start_ts = QSlider(Qt.Horizontal, self._main_widget)
-        self._sld_start_ts.setTickPosition(QSlider.TicksBothSides)
-        self._sld_start_ts.setMinimum(0)
-        self._sld_start_ts.setSingleStep(1)
-        self._sld_start_ts.setPageStep(5)
-        self._sld_start_ts.valueChanged.connect(self.set_start_timestep_slider)
+        # self._text_start_ts = QLineEdit(self._main_widget)
+        # self._text_start_ts.setMaximumWidth(50)
+        # self._text_start_ts.setText('')
+        # self._text_start_ts.returnPressed.connect(self.set_start_timestep_text)
 
-        self._sld_end_ts = QSlider(Qt.Horizontal, self._main_widget)
-        self._sld_end_ts.setMinimum(0)
-        self._sld_end_ts.setTickPosition(QSlider.TicksBothSides)
-        self._sld_end_ts.setSingleStep(1)
-        self._sld_end_ts.setPageStep(5)
-        self._sld_end_ts.valueChanged.connect(self.set_end_timestep_slider)
+        # self._text_end_ts = QLineEdit(self._main_widget)
+        # self._text_end_ts.setMaximumWidth(50)
+        # self._text_end_ts.setText('')
+        # self._text_end_ts.returnPressed.connect(self.set_end_timestep_text)
+
+        # self._sld_start_ts = QSlider(Qt.Horizontal, self._main_widget)
+        # self._sld_start_ts.setTickPosition(QSlider.TicksBothSides)
+        # self._sld_start_ts.setMinimum(0)
+        # self._sld_start_ts.setSingleStep(1)
+        # self._sld_start_ts.setPageStep(5)
+        # self._sld_start_ts.valueChanged.connect(self.set_start_timestep_slider)
+
+        # self._sld_end_ts = QSlider(Qt.Horizontal, self._main_widget)
+        # self._sld_end_ts.setMinimum(0)
+        # self._sld_end_ts.setTickPosition(QSlider.TicksBothSides)
+        # self._sld_end_ts.setSingleStep(1)
+        # self._sld_end_ts.setPageStep(5)
+        # self._sld_end_ts.valueChanged.connect(self.set_end_timestep_slider)
 
         layout_ts = QGridLayout(self._main_widget)
         layout_ts.addWidget(lbl_start_ts, 0, 0)
-        layout_ts.addWidget(self._text_start_ts, 0, 1)
-        layout_ts.addWidget(self._sld_start_ts, 0, 2)
+        layout_ts.addWidget(self._spin_start_ts, 0, 1)
+        # layout_ts.addWidget(self._text_start_ts, 0, 1)
+        # layout_ts.addWidget(self._sld_start_ts, 0, 2)
         layout_ts.addWidget(lbl_end_ts, 1, 0)
-        layout_ts.addWidget(self._text_end_ts, 1, 1)
-        layout_ts.addWidget(self._sld_end_ts, 1, 2)
+        layout_ts.addWidget(self._spin_end_ts, 1, 1)
+        # layout_ts.addWidget(self._text_end_ts, 1, 1)
+        # layout_ts.addWidget(self._sld_end_ts, 1, 2)
 
         box_layout = QVBoxLayout()
         box_layout.addWidget(chk_log_scale)
