@@ -351,9 +351,11 @@ class MainWindow(QMainWindow):
         _, end_ts = self._plt_widget.timerange
 
         if value >= end_ts:
+            self._spin_end_ts.valueChanged.disconnect()
             if value < end_max:
                 end_ts = value + 1
                 self._spin_end_ts.setValue(end_ts)
+            self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
 
         self._plt_widget.set_timestep_range(value, end_ts)
 
@@ -367,9 +369,11 @@ class MainWindow(QMainWindow):
         start_ts, _ = self._plt_widget.timerange
 
         if value <= start_ts:
+            self._spin_start_ts.valueChanged.disconnect()
             if value > start_min:
                 start_ts = value - 1
                 self._spin_start_ts.setValue(start_ts)
+            self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
         self._plt_widget.set_timestep_range(start_ts, value)
 
@@ -595,46 +599,18 @@ class MainWindow(QMainWindow):
         lbl_end_ts = QLabel('End time', self._main_widget)
 
         self._spin_start_ts = QSpinBox(self._main_widget)
+        self._spin_start_ts.setKeyboardTracking(False)
         self._spin_start_ts.setValue(0)
         self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
         self._spin_end_ts = QSpinBox(self._main_widget)
+        self._spin_end_ts.setKeyboardTracking(False)
         self._spin_end_ts.setValue(0)
         self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
 
-        # self._text_start_ts = QLineEdit(self._main_widget)
-        # self._text_start_ts.setMaximumWidth(50)
-        # self._text_start_ts.setText('')
-        # self._text_start_ts.returnPressed.connect(self.set_start_timestep_text)
-
-        # self._text_end_ts = QLineEdit(self._main_widget)
-        # self._text_end_ts.setMaximumWidth(50)
-        # self._text_end_ts.setText('')
-        # self._text_end_ts.returnPressed.connect(self.set_end_timestep_text)
-
-        # self._sld_start_ts = QSlider(Qt.Horizontal, self._main_widget)
-        # self._sld_start_ts.setTickPosition(QSlider.TicksBothSides)
-        # self._sld_start_ts.setMinimum(0)
-        # self._sld_start_ts.setSingleStep(1)
-        # self._sld_start_ts.setPageStep(5)
-        # self._sld_start_ts.valueChanged.connect(self.set_start_timestep_slider)
-
-        # self._sld_end_ts = QSlider(Qt.Horizontal, self._main_widget)
-        # self._sld_end_ts.setMinimum(0)
-        # self._sld_end_ts.setTickPosition(QSlider.TicksBothSides)
-        # self._sld_end_ts.setSingleStep(1)
-        # self._sld_end_ts.setPageStep(5)
-        # self._sld_end_ts.valueChanged.connect(self.set_end_timestep_slider)
-
-        layout_ts = QGridLayout(self._main_widget)
-        layout_ts.addWidget(lbl_start_ts, 0, 0)
-        layout_ts.addWidget(self._spin_start_ts, 0, 1)
-        # layout_ts.addWidget(self._text_start_ts, 0, 1)
-        # layout_ts.addWidget(self._sld_start_ts, 0, 2)
-        layout_ts.addWidget(lbl_end_ts, 1, 0)
-        layout_ts.addWidget(self._spin_end_ts, 1, 1)
-        # layout_ts.addWidget(self._text_end_ts, 1, 1)
-        # layout_ts.addWidget(self._sld_end_ts, 1, 2)
+        layout_ts = QFormLayout(self._main_widget)
+        layout_ts.addRow(lbl_start_ts, self._spin_start_ts)
+        layout_ts.addRow(lbl_end_ts, self._spin_end_ts)
 
         box_layout = QVBoxLayout()
         box_layout.addWidget(chk_log_scale)

@@ -520,35 +520,34 @@ class PlotWidget(QWidget):
 
     def set_timestep_range(self, ts_start, ts_end):
         self._time_range = (ts_start, ts_end)
-        dist_plot = self._child_plots['dist']
-        highlighted_data = dist_plot.highlighted_data
 
         # Reseting the distance chart's curves.
-        dist_plot.set_curves(
-            self._curves[:, ts_start:ts_end], update_chart=False)
         color_list = ['m', 'c', 'g']
         marker_list = ['v', '<', '^']
-        curve_idx = range(self.curves.shape[0] - 3, self.curves.shape[0])
-        for i, idx in enumerate(curve_idx):
-            dist_plot.set_reference_curve(idx, is_ref=True,
-                                          update_chart=False,
-                                          color=color_list[i],
-                                          marker=marker_list[i])
+        keys = ['dist', 'rank']
+        for k in keys:
+            plot = self._child_plots[k]
+            highlighted_data = plot.highlighted_data
+            plot.set_curves(
+                self._curves[:, ts_start:ts_end], update_chart=False)
+            N = self.curves.shape[0]
+            for i, idx in enumerate(range(N - 3, N)):
+                plot.set_reference_curve(idx, is_ref=True, update_chart=False,
+                                         color=color_list[i],
+                                         marker=marker_list[i])
 
-        # Setting the distance charts' baseline and highlighted data
-        # (both erased by the previous 'set_curves' call).
+            plot.highlight_data(highlighted_data, erase=False,
+                                update_chart=False)
+
+        # Setting the charts' baseline (erased by the previous 'set_curves'
+        # call).
         if not self.baseline_id:
             self.set_baseline_curve('P50')
         else:
             self.set_baseline_curve(self.baseline_id)
 
-        dist_plot.highlight_data(highlighted_data,
-                                 erase=False,
-                                 update_chart=True)
-
         # Setting the time range on the fanchart and bump chart.
         self._child_plots['fan'].mark_timestep_range(ts_start, ts_end)
-        self._child_plots['rank'].mark_timestep_range(ts_start, ts_end)
 
 
 def plot_widget_main_test():
