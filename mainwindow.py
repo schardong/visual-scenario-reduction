@@ -15,10 +15,27 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
                              QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                              QLineEdit, QMainWindow, QMenu, QMessageBox,
                              QPushButton, QSpinBox, QStyleFactory, QVBoxLayout,
-                             QWidget, QSlider)
+                             QWidget, QSlider, QProxyStyle, QStyle)
 
 from fieldensemble import FieldEnsemble
 from plotwidget import PlotWidget
+
+
+class SpinBoxCustomStyle(QProxyStyle):
+    """
+    Workaround to avoid double event triggering by the QSpinBox UI items.
+    """
+    def styleHint(self, hint, option=None, widget=None, returnData=None):
+        if hint == QStyle.SH_SpinBox_KeyPressAutoRepeatRate:
+            return 10**10
+        elif hint == QStyle.SH_SpinBox_ClickAutoRepeatRate:
+            return 10**10
+        elif hint == QStyle.SH_SpinBox_ClickAutoRepeatThreshold:
+            # You can use only this condition to avoid the auto-repeat,
+            # but better safe than sorry ;-)
+            return 10**10
+        else:
+            return super().styleHint(hint, option, widget, returnData)
 
 
 class MainWindow(QMainWindow):
@@ -601,11 +618,13 @@ class MainWindow(QMainWindow):
         self._spin_start_ts = QSpinBox(self._main_widget)
         self._spin_start_ts.setKeyboardTracking(False)
         self._spin_start_ts.setValue(0)
+        self._spin_start_ts.setStyle(SpinBoxCustomStyle())
         self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
         self._spin_end_ts = QSpinBox(self._main_widget)
         self._spin_end_ts.setKeyboardTracking(False)
         self._spin_end_ts.setValue(0)
+        self._spin_end_ts.setStyle(SpinBoxCustomStyle())
         self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
 
         layout_ts = QFormLayout(self._main_widget)
