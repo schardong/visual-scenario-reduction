@@ -516,11 +516,12 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
                 # If the time-range is set, then we must draw the time-range
                 # polygon as well.
-                if self._time_range and self._time_range[0] != 0 and self._time_range[1] != self.curves.shape[1]:
-                    self._time_range_poly = self.axes.axvspan(self._time_range[0],
-                                                              self._time_range[1],
-                                                              facecolor='blue',
-                                                              alpha=0.2)
+                if self._time_range:
+                    if self._time_range[0] != 0 or self._time_range[1] != self.curves.shape[1]:
+                        self._time_range_poly = self.axes.axvspan(self._time_range[0],
+                                                                  self._time_range[1],
+                                                                  facecolor='blue',
+                                                                  alpha=0.2)
 
         # If we have reference curves, we plot them here.
         for i in self._reference_idx:
