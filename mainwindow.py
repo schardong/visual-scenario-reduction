@@ -496,7 +496,7 @@ class MainWindow(QMainWindow):
         form_layout.addRow(label_property, self._combo_property)
         form_layout.addRow(label_baseline, self._combo_baseline)
 
-        clear_selected_data = QPushButton('Clear selected data',
+        clear_selected_data = QPushButton('Deselect all',
                                           self._main_widget)
         clear_selected_data.clicked.connect(self.clear_selected_data)
 
