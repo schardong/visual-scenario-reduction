@@ -25,6 +25,7 @@ class SpinBoxCustomStyle(QProxyStyle):
     """
     Workaround to avoid double event triggering by the QSpinBox UI items.
     """
+
     def styleHint(self, hint, option=None, widget=None, returnData=None):
         if hint == QStyle.SH_SpinBox_KeyPressAutoRepeatRate:
             return 10**10
@@ -234,6 +235,7 @@ class MainWindow(QMainWindow):
         # Enabling the UI
         self._alg_box.setEnabled(True)
         self._global_graphical_box.setEnabled(True)
+        self._timestep_box.setEnabled(True)
         self._graphics_box.setEnabled(True)
         self._tlchart_box.setEnabled(True)
         self._fanchart_box.setEnabled(True)
@@ -450,6 +452,7 @@ class MainWindow(QMainWindow):
         self._graphics_box.setEnabled(False)
 
         self._global_graphical_box = self._build_global_graphical_options_box()
+        self._timestep_box = self._build_timestep_options_box()
         self._tlchart_box = self._build_projection_options_box()
         self._fanchart_box = self._build_fanchart_options_box()
         self._rankchart_box = self._build_rankchart_options_box()
@@ -458,6 +461,7 @@ class MainWindow(QMainWindow):
 
         graphics_layout = QVBoxLayout()
         graphics_layout.addWidget(self._global_graphical_box)
+        graphics_layout.addWidget(self._timestep_box)
         graphics_layout.addWidget(self._tlchart_box)
         graphics_layout.addWidget(self._fanchart_box)
         graphics_layout.addWidget(self._rankchart_box)
@@ -555,6 +559,33 @@ class MainWindow(QMainWindow):
         box.setEnabled(False)
         return box
 
+    def _build_timestep_options_box(self):
+        """
+        """
+        box = QGroupBox('Timestep selection', self)
+
+        lbl_start_ts = QLabel('Start time', self._main_widget)
+        lbl_end_ts = QLabel('End time', self._main_widget)
+
+        self._spin_start_ts = QSpinBox(self._main_widget)
+        self._spin_start_ts.setKeyboardTracking(False)
+        self._spin_start_ts.setValue(0)
+        self._spin_start_ts.setStyle(SpinBoxCustomStyle())
+        self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
+
+        self._spin_end_ts = QSpinBox(self._main_widget)
+        self._spin_end_ts.setKeyboardTracking(False)
+        self._spin_end_ts.setValue(0)
+        self._spin_end_ts.setStyle(SpinBoxCustomStyle())
+        self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
+
+        layout_ts = QFormLayout(self._main_widget)
+        layout_ts.addRow(lbl_start_ts, self._spin_start_ts)
+        layout_ts.addRow(lbl_end_ts, self._spin_end_ts)
+        box.setLayout(layout_ts)
+        box.setEnabled(False)
+        return box
+
     def _build_projection_options_box(self):
         """
         Creates a QGroupBox object containing the UI elements with the
@@ -612,29 +643,9 @@ class MainWindow(QMainWindow):
         chk_group_selection.setChecked(
             self._plt_widget.get_group_selection_distchart())
 
-        lbl_start_ts = QLabel('Start time', self._main_widget)
-        lbl_end_ts = QLabel('End time', self._main_widget)
-
-        self._spin_start_ts = QSpinBox(self._main_widget)
-        self._spin_start_ts.setKeyboardTracking(False)
-        self._spin_start_ts.setValue(0)
-        self._spin_start_ts.setStyle(SpinBoxCustomStyle())
-        self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
-
-        self._spin_end_ts = QSpinBox(self._main_widget)
-        self._spin_end_ts.setKeyboardTracking(False)
-        self._spin_end_ts.setValue(0)
-        self._spin_end_ts.setStyle(SpinBoxCustomStyle())
-        self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
-
-        layout_ts = QFormLayout(self._main_widget)
-        layout_ts.addRow(lbl_start_ts, self._spin_start_ts)
-        layout_ts.addRow(lbl_end_ts, self._spin_end_ts)
-
         box_layout = QVBoxLayout()
         box_layout.addWidget(chk_log_scale)
         box_layout.addWidget(chk_group_selection)
-        box_layout.addLayout(layout_ts)
         box.setLayout(box_layout)
         box.setEnabled(False)
         return box

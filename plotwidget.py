@@ -520,7 +520,9 @@ class PlotWidget(QWidget):
 
     def set_timestep_range(self, ts_start, ts_end):
         self._time_range = (ts_start, ts_end)
+
         self._child_plots['rank'].set_time_range(ts_start, ts_end)
+        self._child_plots['fan'].set_time_range(ts_start, ts_end)
 
         # Reseting the distance chart's curves.
         color_list = ['m', 'c', 'g']
@@ -548,7 +550,7 @@ class PlotWidget(QWidget):
             self.set_baseline_curve(self.baseline_id)
 
         # Setting the time range on the fanchart and bump chart.
-        self._child_plots['fan'].mark_timestep_range(ts_start, ts_end)
+        # self._child_plots['fan'].mark_timestep_range(ts_start, ts_end)
 
 
 def plot_widget_main_test():

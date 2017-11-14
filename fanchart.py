@@ -121,6 +121,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._reference_idx = set()
         self._highlighted_ts = None
         self._curvenames = None
+        self._time_range = ()
 
         # Plot styles
         self._plot_title = self.base_plot_name()
@@ -236,6 +237,13 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         return self._curvenames
 
+    @property
+    def time_range(self):
+        """
+        Returns the currently used timestep range.
+        """
+        return self._time_range
+
     def set_highlighted_timestep(self, ts, update_chart=True, **plotprops):
         """
         Sets the currently highlighted timestep.
@@ -281,6 +289,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             Switch that indicates if the plot should be updated now.
         """
         self._curves = curves
+        self._time_range = (0, self.curves.shape[1])
 
         # Reseting the reference data
         self._reference_idx.clear()
@@ -433,6 +442,30 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         self._curvenames = curvenames
 
+    def set_time_range(self, start, end, update_chart=True):
+        """
+        Sets the time range to use when creating the rank curves.
+
+        Parameters
+        ----------
+        start: int
+            The starting timestep, must be larger than 0 and smaller than end.
+        end: int
+            The last timestep, inclusive. Must be larget than start and
+            smaller than self.curves.shape[1].
+        update_chart: boolean
+            Switch to indicate if the plot should be updated. Default value is
+            True.
+        """
+        if self.curves is None:
+            return
+        if start < 0 or end > self.curves.shape[1] or start >= end:
+            return
+
+        self._time_range = (start, end)
+        if update_chart:
+            self.update_chart(data_changed=True)
+
     def mark_timestep_range(self, start, end):
         """
         Marks the selected timestep range with two vertical lines. Mainly used
@@ -494,6 +527,8 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             self.axes.set_title(self.plot_title)
             self.axes.set_xlabel('Timestep')
             self.axes.set_ylabel('Value')
+            xmin, xmax = self.time_range
+            self.axes.set_xlim([xmin, xmax - 1])
 
             normal_idx = [i for i in range(len(self.curves))
                           if i not in self._reference_idx]
@@ -516,16 +551,17 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
                 # If the time-range is set, then we must draw the time-range
                 # polygon as well.
-                if self._time_range:
-                    if self._time_range[0] != 0 or self._time_range[1] != self.curves.shape[1]:
-                        self._time_range_poly = self.axes.axvspan(self._time_range[0],
-                                                                  self._time_range[1],
-                                                                  facecolor='blue',
-                                                                  alpha=0.2)
+                # if self._time_range:
+                #    if self._time_range[0] != 0 or self._time_range[1] != self.curves.shape[1]:
+                #        self._time_range_poly = self.axes.axvspan(self._time_range[0],
+                #                                                  self._time_range[1],
+                #                                                  facecolor='blue',
+                #                                                  alpha=0.2)
 
         # If we have reference curves, we plot them here.
         for i in self._reference_idx:
-            self.axes.plot(self.curves[i, :],
+            self.axes.plot(range(self.time_range[0], self.time_range[1]),
+                           self.curves[i, self.time_range[0]:self.time_range[1]],
                            **self._reference_parameters[i])
 
         if 'highlighted_timestep' in kwargs:

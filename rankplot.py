@@ -464,9 +464,23 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self.update_chart(data_changed=True)
 
     def set_time_range(self, start, end, update_chart=True):
+        """
+        Sets the time range to use when creating the rank curves.
+
+        Parameters
+        ----------
+        start: int
+            The starting timestep, must be larger than 0 and smaller than end.
+        end: int
+            The last timestep, inclusive. Must be larget than start and
+            smaller than self.curves.shape[1].
+        update_chart: boolean
+            Switch to indicate if the plot should be updated. Default value is
+            True.
+        """
         if self.curves is None:
             return
-        if start < 0 or end > self.curves.shape[1]:
+        if start < 0 or end > self.curves.shape[1] or start >= end:
             return
 
         self._time_range = (start, end)
