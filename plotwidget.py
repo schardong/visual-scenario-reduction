@@ -520,11 +520,12 @@ class PlotWidget(QWidget):
 
     def set_timestep_range(self, ts_start, ts_end):
         self._time_range = (ts_start, ts_end)
+        self._child_plots['rank'].set_time_range(ts_start, ts_end)
 
         # Reseting the distance chart's curves.
         color_list = ['m', 'c', 'g']
         marker_list = ['v', '<', '^']
-        keys = ['dist', 'rank']
+        keys = ['dist']
         for k in keys:
             plot = self._child_plots[k]
             highlighted_data = plot.highlighted_data
@@ -607,17 +608,17 @@ def plot_widget_main_test():
             self.curves = np.random.normal(size=(15, 30))
             self.plotwidget.set_property_name('Random Data')
             self.plotwidget.set_curves(self.curves)
-            self.plotwidget.set_baseline_curve('p50')
+            self.plotwidget.set_baseline_curve('P50')
             self.plotwidget.update_charts(data_changed=True)
 
         def set_baseline_p10(self):
-            self.plotwidget.set_baseline_curve('p10')
+            self.plotwidget.set_baseline_curve('P10')
 
         def set_baseline_p50(self):
-            self.plotwidget.set_baseline_curve('p50')
+            self.plotwidget.set_baseline_curve('P50')
 
         def set_baseline_p90(self):
-            self.plotwidget.set_baseline_curve('p90')
+            self.plotwidget.set_baseline_curve('P90')
 
         def save_plots(self):
             self.plotwidget.save_plots()
