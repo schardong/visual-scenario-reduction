@@ -147,6 +147,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._curvenames = None
         self._plotted_series = None
         self._rank_inverted = False
+        self._time_range = ()
 
         # Plot style setup
         self._plot_title = self.base_plot_name()
@@ -155,8 +156,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._curves_colors = {}
         self._hthresh_line = None
         self._ts_line = None
-        self._time_range = ()
-        self._time_range_poly = None
         self._group_selection = False
         self._plot_params = kwargs
         if 'picker' not in self._plot_params:
@@ -260,6 +259,13 @@ class RankChart(FigureCanvas, BrushableCanvas):
         """
         return self._rank_inverted
 
+    @property
+    def time_range(self):
+        """
+        Returns the currently used timestep range.
+        """
+        return self._time_range
+
     def set_group_selection_enabled(self, enable):
         """
         Enables or disables the group selection option.
@@ -302,6 +308,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             update. Default value is True.
         """
         self._curves = curves_data
+        self._time_range = (0, self.curves.shape[1])
 
         # Reseting the reference and baseline data
         self._reference_idx.clear()
@@ -456,6 +463,16 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if update_chart:
             self.update_chart(data_changed=True)
 
+    def set_time_range(self, start, end, update_chart=True):
+        if self.curves is None:
+            return
+        if start < 0 or end > self.curves.shape[1]:
+            return
+
+        self._time_range = (start, end)
+        if update_chart:
+            self.update_chart(data_changed=True)
+
     def mark_timestep_range(self, start, end):
         """
         Marks the selected timestep range with two vertical lines. Mainly used
@@ -544,14 +561,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
         # If the group selection is enabled, we show a preview of all curves
         # that will be highlighted should the user click the mouse button.
         if self.group_selection_enabled:
-            tstep = int(event.xdata + 0.5)
+            ts = int(event.xdata - self.time_range[0] + 0.5)
             if self.rank_inverted:
                 for i, series in enumerate(self._rank_series):
-                    if series[tstep] < event.ydata and self._is_normal_curve_idx(i):
+                    if series[ts] < event.ydata and self._is_normal_curve_idx(i):
                         self.axes.lines[i].set_color(cm.gray(200))
             else:
                 for i, series in enumerate(self._rank_series):
-                    if series[tstep] > event.ydata and self._is_normal_curve_idx(i):
+                    if series[ts] > event.ydata and self._is_normal_curve_idx(i):
                         self.axes.lines[i].set_color(cm.gray(200))
 
             self._hthresh_line = self.axes.axhline(y=event.ydata, c='b',
@@ -614,7 +631,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             if self.group_selection_enabled:
                 self.highlight_data(self.highlighted_data, erase=True,
                                     update_chart=False)
-                ts = int(event.xdata + 0.5)
+                ts = int(event.xdata - self.time_range[0] + 0.5)
                 if self.rank_inverted:
                     for i, l in enumerate(self._rank_series):
                         if l[ts] > event.ydata and self._is_normal_curve_idx(i):
@@ -687,11 +704,12 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self.axes.set_title(self.plot_title)
             self.axes.set_xlabel('Timestep')
             self.axes.set_ylabel('Rank')
-            xmax = self._curves.shape[1] - 1
+            xmin, xmax = self.time_range
             ymax = self._curves.shape[0]
-            self.axes.set_xlim([0, xmax])
+            self.axes.set_xlim([xmin, xmax - 1])
             self.axes.set_ylim([0, ymax])
 
+            # Figuring out the axis to set the baseline color.
             spine = 'bottom'
             ospine = 'top'
             ycoord = 0.065
@@ -704,6 +722,8 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 self._reference_parameters[self._baseline_idx]['color'])
             self.axes.spines[ospine].set_linewidth(1.0)
             self.axes.spines[ospine].set_color('black')
+
+            # Removing/redrawing the baseline text.
             if self._perctext:
                 self._perctext.remove()
             if self.curvenames:
@@ -713,7 +733,10 @@ class RankChart(FigureCanvas, BrushableCanvas):
 
             self._plotted_series = [None] * self.curves.shape[0]
 
-            self._rank_series = rank_series(self._curves, self._baseline_idx,
+            curves = self.curves
+            if self.time_range[0] != 0 or self.time_range[1] != self.curves.shape[1]:
+                curves = curves[:, self.time_range[0]:self.time_range[1]]
+            self._rank_series = rank_series(curves, self._baseline_idx,
                                             inverted=self.rank_inverted)
 
             normal_idx = [i for i in range(len(self._rank_series))
@@ -732,17 +755,11 @@ class RankChart(FigureCanvas, BrushableCanvas):
                     plot_params = self._reference_parameters[i]
                 else:
                     plot_params['color'] = self._curves_colors[i]
-                self._plotted_series[i] = self.axes.plot(r, **plot_params)
+                self._plotted_series[i] = self.axes.plot(
+                    range(self.time_range[0], self.time_range[1]), r,
+                    **plot_params)
 
             self.update_chart(selected_data=True)
-
-            # If the time-range is set, then we must draw the time-range
-            # polygon as well.
-            if self._time_range and self._time_range[0] != 0 and self._time_range[1] != self.curves.shape[1]:
-                self._time_range_poly = self.axes.axvspan(self._time_range[0],
-                                                          self._time_range[1],
-                                                          facecolor='blue',
-                                                          alpha=0.2)
 
         self.draw()
 
@@ -791,12 +808,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
 
 def main():
     from PyQt5 import QtCore
+    from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
                                  QHBoxLayout, QVBoxLayout, QPushButton,
-                                 QMessageBox, QCheckBox)
+                                 QMessageBox, QCheckBox, QLabel, QSlider,
+                                 QFormLayout)
     import sys
     """
-    Simple feature test function for the TimeLapseLAMPChart class.
+    Simple feature test function for the RankChart class.
     """
     class MyTestWidget(QMainWindow):
         """
@@ -810,8 +829,20 @@ def main():
             self.title = 'Dummy Qt widget'
             self.width = 600
             self.height = 400
+            self._sld_timestep_start = None
+            self._sld_timestep_end = None
+            self._timerange = self.max_timerange
+
             self.buildUI()
             self.update_data()
+
+        @property
+        def max_timerange(self):
+            return (0, 50)
+
+        @property
+        def timerange(self):
+            return self._timerange
 
         def buildUI(self):
             self.setWindowTitle(self.title)
@@ -837,9 +868,32 @@ def main():
             rank_inverted = QPushButton('Invert rank', self)
             rank_inverted.clicked.connect(self.set_rank_inverted)
 
+            lbl_start_ts = QLabel('Start time', self)
+            lbl_end_ts = QLabel('End time', self)
+
+            self._sld_timestep_start = QSlider(Qt.Horizontal, self)
+            self._sld_timestep_start.setTickPosition(QSlider.TicksBothSides)
+            self._sld_timestep_start.setMinimum(0)
+            self._sld_timestep_start.setSingleStep(1)
+            self._sld_timestep_start.setPageStep(5)
+            self._sld_timestep_start.valueChanged.connect(
+                self.set_start_timestep)
+
+            self._sld_timestep_end = QSlider(Qt.Horizontal, self)
+            self._sld_timestep_end.setMinimum(0)
+            self._sld_timestep_end.setTickPosition(QSlider.TicksBothSides)
+            self._sld_timestep_end.setSingleStep(1)
+            self._sld_timestep_end.setPageStep(5)
+            self._sld_timestep_end.valueChanged.connect(self.set_end_timestep)
+
             self.main_widget = QWidget(self)
             l = QHBoxLayout(self.main_widget)
             l.addWidget(self.rank_chart)
+
+            slider_layout = QFormLayout(self.main_widget)
+            slider_layout.addRow(lbl_start_ts, self._sld_timestep_start)
+            slider_layout.addRow(lbl_end_ts, self._sld_timestep_end)
+
             button_layout = QVBoxLayout(self.main_widget)
             button_layout.addWidget(p10_baseline_button)
             button_layout.addWidget(p50_baseline_button)
@@ -848,6 +902,8 @@ def main():
             button_layout.addWidget(group_sel)
             button_layout.addWidget(rank_inverted)
             button_layout.addWidget(reset_button)
+            button_layout.addLayout(slider_layout)
+
             l.addLayout(button_layout)
 
             self.setFocus()
@@ -871,6 +927,19 @@ def main():
             curvenames.extend(['P10', 'P50', 'P90'])
             self.rank_chart.set_curvenames(curvenames)
 
+            min_ts, max_ts = self.max_timerange
+            self._sld_timestep_start.setMinimum(min_ts)
+            self._sld_timestep_start.setMaximum(max_ts)
+            self._sld_timestep_start.setValue(min_ts)
+
+            self._sld_timestep_end.setMinimum(min_ts)
+            self._sld_timestep_end.setMaximum(max_ts)
+            self._sld_timestep_end.setValue(max_ts)
+
+        def set_timestep_range(self, ts_start, ts_end):
+            self._timerange = (ts_start, ts_end)
+            self.rank_chart.set_time_range(ts_start, ts_end)
+
         def set_baseline_p10(self):
             self.rank_chart.set_baseline_curve(self.curves.shape[0] - 3, True)
 
@@ -883,6 +952,34 @@ def main():
         def set_brushed_data(self, child_name, obj_ids):
             print('widget {} brushed some objects.'.format(child_name))
             print('Objects:\n\t', obj_ids)
+
+        def set_start_timestep(self, start_ts):
+            start_min, _ = self.max_timerange
+            _, end_ts = self.timerange
+
+            if start_ts >= end_ts:
+                if start_ts > start_min:
+                    start_ts = end_ts - 1
+                else:
+                    end_ts = start_ts + 1
+
+            self._sld_timestep_start.setValue(start_ts)
+            self._sld_timestep_end.setValue(end_ts)
+            self.set_timestep_range(start_ts, end_ts)
+
+        def set_end_timestep(self, end_ts):
+            _, end_max = self.max_timerange
+            start_ts, _ = self.timerange
+
+            if start_ts >= end_ts:
+                if end_ts < end_max:
+                    end_ts = start_ts + 1
+                else:
+                    start_ts = end_ts - 1
+
+            self._sld_timestep_start.setValue(start_ts)
+            self._sld_timestep_end.setValue(end_ts)
+            self.set_timestep_range(start_ts, end_ts)
 
         def set_group_selection(self, i):
             check = True
