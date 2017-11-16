@@ -133,6 +133,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._dims = 2
         self._tree = None
         self._curvenames = None
+        self._curves_to_hide = set()
 
         # Plot styles
         self._plot_lines = False
@@ -426,6 +427,55 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if update_chart:
             self.update_chart(data_changed=True)
 
+    def is_reference_curve(self, idx):
+        """
+        Returns if a given curve index is a reference curve.
+        Raises a ValueError if the index is out of range.
+
+        Parameters
+        ----------
+        idx: int
+            The curve index to query.
+
+        Returns
+        -------
+        True if the given index is a reference curve, False otherwise.
+        """
+        if idx < 0 or idx > self.curves.shape[0]:
+            raise ValueError('Index out of range.')
+        return idx in self._reference_idx
+
+    def set_draw_curve(self, idx, draw, update_data=True):
+        """
+        Sets wheter a curve should be drawn or not. Also works on
+        reference curves.
+
+        Parameters
+        ----------
+        idx: int
+            The curve's index.
+        draw: boolean
+            True to draw the curve, False to hide it.
+        """
+        if idx < 0 or idx > self.curves.shape[0]:
+            raise ValueError('Index out of range')
+
+        if not draw:
+            self._curves_to_hide.add(idx)
+        else:
+            self._curves_to_hide.discard(idx)
+
+        if update_data:
+            self.update_chart(data_changed=True)
+
+    def is_drawing_curve(self, idx):
+        """
+        Returns wheter the selected curve is hidden or not.
+        """
+        if idx < 0 or idx > self.curves.shape[0]:
+            raise ValueError('Index out of range')
+        return idx not in self._curves_to_hide
+
     def set_timestep_data(self, start_time=None, end_time=None, step_time=None,
                           update_chart=True):
         """
@@ -689,7 +739,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if not art:
             return True
 
-        contains, _ = art[pidx].contains(event)
+        contains = False
+        if not self.is_drawing_curve(pidx):
+            return
+        try:
+            contains, _ = art[pidx].contains(event)
+        except:
+            print(pidx)
 
         if contains:
             if self.curvenames:
@@ -792,11 +848,15 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             colormap = cm.get_cmap(name=self.colormap_name,
                                    lut=len(self.curves))
             for i in nref_idx:
+                if i in self._curves_to_hide:
+                    continue
                 self._plot_params['color'] = colormap(i)
                 self._plot_path_projection(self.projected_curves[i],
                                            **self._plot_params)
 
             for i in self._reference_idx:
+                if not self.is_drawing_curve(i):
+                    continue
                 self._plot_path_projection(self.projected_curves[i],
                                            **self._reference_parameters[i])
 
@@ -948,6 +1008,12 @@ def main():
             points_button.clicked.connect(self.switch_point_state)
             lines_button = QPushButton('Plot lines', self)
             lines_button.clicked.connect(self.switch_line_state)
+            p10_button = QPushButton('Enable P10', self)
+            p10_button.clicked.connect(self.enableP10)
+            p50_button = QPushButton('Enable P50', self)
+            p50_button.clicked.connect(self.enableP50)
+            p90_button = QPushButton('Enable P90', self)
+            p90_button.clicked.connect(self.enableP90)
             rand_data = QPushButton('Generate new data', self)
             rand_data.clicked.connect(self.update_data)
             reset_button = QPushButton('Reset view', self)
@@ -956,11 +1022,16 @@ def main():
             self.main_widget = QWidget(self)
             l = QHBoxLayout(self.main_widget)
             l.addWidget(self.lamp)
+
             button_layout = QVBoxLayout(self.main_widget)
             button_layout.addWidget(points_button)
             button_layout.addWidget(lines_button)
+            button_layout.addWidget(p90_button)
+            button_layout.addWidget(p50_button)
+            button_layout.addWidget(p10_button)
             button_layout.addWidget(rand_data)
             button_layout.addWidget(reset_button)
+
             l.addLayout(button_layout)
 
             self.setFocus()
@@ -990,6 +1061,21 @@ def main():
                           for i in range(curves.shape[0])]
             curvenames.extend(['P10', 'P50', 'P90'])
             self.lamp.set_curvenames(curvenames)
+
+        def enableP10(self):
+            c = self.lamp.curves.shape[0]
+            draw = self.lamp.is_drawing_curve(c - 3)
+            self.lamp.set_draw_curve(c - 3, not draw)
+
+        def enableP50(self):
+            c = self.lamp.curves.shape[0]
+            draw = self.lamp.is_drawing_curve(c - 2)
+            self.lamp.set_draw_curve(c - 2, not draw)
+
+        def enableP90(self):
+            c = self.lamp.curves.shape[0]
+            draw = self.lamp.is_drawing_curve(c - 1)
+            self.lamp.set_draw_curve(c - 1, not draw)
 
         def set_brushed_data(self, child_name, obj_ids):
             print('widget {} brushed some objects.'.format(child_name))

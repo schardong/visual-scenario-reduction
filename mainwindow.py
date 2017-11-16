@@ -106,6 +106,9 @@ class MainWindow(QMainWindow):
         self._chk_show_p10 = None
         self._chk_show_p50 = None
         self._chk_show_p90 = None
+        self._chk_show_p10_lamp = None
+        self._chk_show_p50_lamp = None
+        self._chk_show_p90_lamp = None
         self._spin_start_ts = None
         self._spin_end_ts = None
         self._main_widget = None
@@ -422,6 +425,13 @@ class MainWindow(QMainWindow):
             self._chk_show_p90.setChecked(
                 self._plt_widget.fan_is_showing_p90())
 
+            self._chk_show_p10_lamp.setChecked(
+                self._plt_widget.lamp_is_showing_p10())
+            self._chk_show_p50_lamp.setChecked(
+                self._plt_widget.lamp_is_showing_p50())
+            self._chk_show_p90_lamp.setChecked(
+                self._plt_widget.lamp_is_showing_p90())
+
             start_ts, end_ts = self._plt_widget.max_timerange
             self._spin_start_ts.setMaximum(end_ts)
             self._spin_start_ts.setValue(start_ts)
@@ -613,9 +623,21 @@ class MainWindow(QMainWindow):
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
         # chk_ts_highlight.stateChanged.connect(self.set_ts_highlight_tlchart)
 
+        self._chk_show_p10_lamp = QCheckBox('Show P10', box)
+        self._chk_show_p10_lamp.clicked.connect(self._plt_widget.lamp_show_p10)
+
+        self._chk_show_p50_lamp = QCheckBox('Show P50', box)
+        self._chk_show_p50_lamp.clicked.connect(self._plt_widget.lamp_show_p50)
+
+        self._chk_show_p90_lamp = QCheckBox('Show P90', box)
+        self._chk_show_p90_lamp.clicked.connect(self._plt_widget.lamp_show_p90)
+
         box_layout = QVBoxLayout()
         box_layout.addWidget(self._chk_plot_points)
         box_layout.addWidget(self._chk_plot_lines)
+        box_layout.addWidget(self._chk_show_p90_lamp)
+        box_layout.addWidget(self._chk_show_p50_lamp)
+        box_layout.addWidget(self._chk_show_p10_lamp)
         # box_layout.addWidget(chk_ts_highlight)
         box.setLayout(box_layout)
         box.setEnabled(False)

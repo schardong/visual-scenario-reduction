@@ -501,6 +501,39 @@ class PlotWidget(QWidget):
         c = fan.curves.shape[0]
         return fan.is_reference_curve(c - 1)
 
+    def lamp_show_p10(self):
+        p = self._child_plots['tl']
+        c = p.curves.shape[0]
+        draw = p.is_drawing_curve(c - 3)
+        p.set_draw_curve(c - 3, not draw)
+
+    def lamp_is_showing_p10(self):
+        p = self._child_plots['tl']
+        c = p.curves.shape[0]
+        return p.is_drawing_curve(c - 3)
+
+    def lamp_show_p50(self):
+        p = self._child_plots['tl']
+        c = p.curves.shape[0]
+        draw = p.is_drawing_curve(c - 2)
+        p.set_draw_curve(c - 2, not draw)
+
+    def lamp_is_showing_p50(self):
+        p = self._child_plots['tl']
+        c = p.curves.shape[0]
+        return p.is_drawing_curve(c - 2)
+
+    def lamp_show_p90(self):
+        p = self._child_plots['tl']
+        c = p.curves.shape[0]
+        draw = p.is_drawing_curve(c - 1)
+        p.set_draw_curve(c - 1, not draw)
+
+    def lamp_is_showing_p90(self):
+        p = self._child_plots['tl']
+        c = p.curves.shape[0]
+        return p.is_drawing_curve(c - 1)
+
     def save_plots(self):
         for name, pl in self._child_plots.items():
             f = pl.figure
