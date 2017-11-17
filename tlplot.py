@@ -133,6 +133,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._dims = 2
         self._tree = None
         self._curvenames = None
+        self._hidden_curves = set()
 
         # Plot styles
         self._plot_lines = False
@@ -461,9 +462,14 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if idx < 0 or idx > self.curves.shape[0]:
             raise ValueError('Index out of range')
 
-        if self._point_artists:
+        if not draw:
+            self._hidden_curves.add(idx)
+        else:
+            self._hidden_curves.discard(idx)
+
+        if self._point_artists and self._point_artists[idx]:
             self._point_artists[idx].set_visible(draw)
-        if self._line_artists:
+        if self._line_artists and self._line_artists[idx]:
             self._line_artists[idx].set_visible(draw)
 
         self.draw()
@@ -859,6 +865,12 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 self._plot_path_projection(self.projected_curves[i], i,
                                            **self._reference_parameters[i])
 
+            for i in self._hidden_curves:
+                if self._point_artists and self._point_artists[i]:
+                    self._point_artists[i].set_visible(False)
+                if self._line_artists and self._line_artists[i]:
+                    self._line_artists[i].set_visible(False)
+
             self.axes.set_xticklabels([])
             self.axes.set_yticklabels([])
             self.update_chart(selected_data=True)
@@ -920,8 +932,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self._point_artists[curve_idx] = self.axes.scatter(
                 x, y, **{**self.point_plot_params, **kwargs})
         if self.plot_lines:
-            self._line_artits[curve_idx] = self.axes.plot(
-                x, y, **{**self.line_plot_params, **kwargs})
+            self._line_artists[curve_idx] = self.axes.plot(
+                x, y, **{**self.line_plot_params, **kwargs})[0]
 
     def _update_projected_data(self):
         """
