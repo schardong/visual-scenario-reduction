@@ -508,19 +508,18 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         if self.curves is None:
             return
 
+        tr = range(self.time_range[0], self.time_range[1])
+
         if 'selected_data' in kwargs:
             # First, we clear the lines from the chart.
-            lines = self.axes.get_lines()
-            for l in lines:
-                self.axes.lines.remove(l)
-                del l
-            self._plotted_lines = [None] * self.curves.shape[0]
+
+            nref_idx = set(range(self.curves.shape[0])) - self._reference_idx
+            for i in nref_idx:
+                self._plotted_lines[i].set_visible(False)
 
             # Then we add the selected lines over it.
             for i in self.highlighted_data:
-                self._plotted_lines[i] = self.axes.plot(
-                    self.curves[i, :],
-                    color=self._curves_colors[i])
+                self._plotted_lines[i].set_visible(True)
 
         if 'data_changed' in kwargs:
             self.axes.cla()
@@ -537,32 +536,32 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             self._curves_colors = dict((i, lines_colormap(i))
                                        for i in normal_idx)
 
+            self._plotted_lines = [None] * self.curves.shape[0]
+
             if self.curves is not None:
                 fanchart(ax=self.axes,
-                         x=range(self.curves.shape[1]),
-                         y=self.curves,
+                         x=tr,
+                         y=self.curves[:, tr],
                          colormap=cm.get_cmap(
                              name=self.fan_colormap_name, lut=8),
                          q=self.percentiles,
                          **self._plot_params)
 
+                nref_idx = set(
+                    range(self.curves.shape[0])) - self._reference_idx
+                for i in nref_idx:
+                    self._plotted_lines[i] = self.axes.plot(
+                        tr, self.curves[i, tr],
+                        color=self._curves_colors[i])[0]
+
                 # We must add the selected data over the fanchart.
                 self.update_chart(selected_data=True)
 
-                # If the time-range is set, then we must draw the time-range
-                # polygon as well.
-                # if self._time_range:
-                #    if self._time_range[0] != 0 or self._time_range[1] != self.curves.shape[1]:
-                #        self._time_range_poly = self.axes.axvspan(self._time_range[0],
-                #                                                  self._time_range[1],
-                #                                                  facecolor='blue',
-                #                                                  alpha=0.2)
-
         # If we have reference curves, we plot them here.
         for i in self._reference_idx:
-            self.axes.plot(range(self.time_range[0], self.time_range[1]),
-                           self.curves[i, self.time_range[0]:self.time_range[1]],
-                           **self._reference_parameters[i])
+            self._plotted_lines[i] = self.axes.plot(tr,
+                                                    self.curves[i, tr],
+                                                    **self._reference_parameters[i])[0]
 
         if 'highlighted_timestep' in kwargs:
             # If the timestep indicator line is drawn, we set it as invisible
