@@ -133,11 +133,12 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._dims = 2
         self._tree = None
         self._curvenames = None
-        self._curves_to_hide = set()
 
         # Plot styles
         self._plot_lines = False
         self._plot_points = True
+        self._point_artists = {}
+        self._line_artists = {}
         self._plot_title = self.base_plot_name()
         self._reference_parameters = {}
         self._cmap_name = 'rainbow'
@@ -445,7 +446,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             raise ValueError('Index out of range.')
         return idx in self._reference_idx
 
-    def set_draw_curve(self, idx, draw, update_data=True):
+    def set_draw_curve(self, idx, draw):
         """
         Sets wheter a curve should be drawn or not. Also works on
         reference curves.
@@ -460,13 +461,12 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if idx < 0 or idx > self.curves.shape[0]:
             raise ValueError('Index out of range')
 
-        if not draw:
-            self._curves_to_hide.add(idx)
-        else:
-            self._curves_to_hide.discard(idx)
+        if self._point_artists:
+            self._point_artists[idx].set_visible(draw)
+        if self._line_artists:
+            self._line_artists[idx].set_visible(draw)
 
-        if update_data:
-            self.update_chart(data_changed=True)
+        self.draw()
 
     def is_drawing_curve(self, idx):
         """
@@ -474,7 +474,12 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         if idx < 0 or idx > self.curves.shape[0]:
             raise ValueError('Index out of range')
-        return idx not in self._curves_to_hide
+        if self._point_artists:
+            return self._point_artists[idx].get_visible()
+        elif self._line_artists:
+            return self._line_artists[idx].get_visible()
+        else:
+            raise AttributeError('No draw call made yet')
 
     def set_timestep_data(self, start_time=None, end_time=None, step_time=None,
                           update_chart=True):
@@ -708,6 +713,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         event: matplotlib.backend_bases.MouseEvent
             Data about the event.
         """
+        # Restoting the original parameters.
         if self.plot_points:
             for art in self.axes.collections:
                 art.set_sizes([self.point_plot_params['s']])
@@ -715,7 +721,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             for art in self.axes.lines:
                 art.set_linewidth(self.line_plot_params['linewidth'])
 
-        # If the event is outside the axes, we call the timestep callback to notify anyone.
+        # If the event is outside the axes, we call the timestep callback to
+        # notify anyone.
         if event.xdata is None or event.ydata is None:
             if self._cb_notify_timestep:
                 self._cb_notify_timestep(self.name, None)
@@ -739,13 +746,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if not art:
             return True
 
-        contains = False
-        if not self.is_drawing_curve(pidx):
-            return
-        try:
-            contains, _ = art[pidx].contains(event)
-        except:
-            print(pidx)
+        contains, _ = art[pidx].contains(event)
 
         if contains:
             if self.curvenames:
@@ -844,20 +845,18 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.axes.set_title(self.plot_title)
             self.axes.set_xlabel('Axis 1')
             self.axes.set_ylabel('Axis 2')
+            self._point_artists = {}
+            self._line_artists = {}
 
             colormap = cm.get_cmap(name=self.colormap_name,
                                    lut=len(self.curves))
             for i in nref_idx:
-                if i in self._curves_to_hide:
-                    continue
                 self._plot_params['color'] = colormap(i)
-                self._plot_path_projection(self.projected_curves[i],
+                self._plot_path_projection(self.projected_curves[i], i,
                                            **self._plot_params)
 
             for i in self._reference_idx:
-                if not self.is_drawing_curve(i):
-                    continue
-                self._plot_path_projection(self.projected_curves[i],
+                self._plot_path_projection(self.projected_curves[i], i,
                                            **self._reference_parameters[i])
 
             self.axes.set_xticklabels([])
@@ -899,7 +898,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             fig.canvas.mpl_disconnect(self._cb_fig_leave_id)
             self._cb_fig_leave_id = None
 
-    def _plot_path_projection(self, path_coords, **kwargs):
+    def _plot_path_projection(self, path_coords, curve_idx, **kwargs):
         """
         Helper method to plot a single projected curve.
 
@@ -908,16 +907,21 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         path_coords: numpy.array
             A NxD array with the projected coordinates. N is the number of
             points and D is the number of dimensions.
+        curve_idx: int
+            The curve index in the original matrix.
         """
         if path_coords is None or len(path_coords) == 0:
             return
 
         x = path_coords[:, 0]
         y = path_coords[:, 1]
+
         if self.plot_points:
-            self.axes.scatter(x, y, **{**self.point_plot_params, **kwargs})
+            self._point_artists[curve_idx] = self.axes.scatter(
+                x, y, **{**self.point_plot_params, **kwargs})
         if self.plot_lines:
-            self.axes.plot(x, y, **{**self.line_plot_params, **kwargs})
+            self._line_artits[curve_idx] = self.axes.plot(
+                x, y, **{**self.line_plot_params, **kwargs})
 
     def _update_projected_data(self):
         """
