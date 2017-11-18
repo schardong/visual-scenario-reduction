@@ -1,3 +1,13 @@
+v0.4
+* Fixed the pan and zoom functionalities;
+* Removed the zoom undo behavior;
+* Both pan and zoom are activated by the middle mouse button now;
+* Changed the plot's positions on the window;
+  * Fanchart is on the top-left corner of the window now.
+* Visual indicator of the current percentile in the bump chart;
+* Recalculating the bump chart when the timestep range is changed;
+* UI changes to the distance chart panel.
+
 v0.3
 * Added pan functionality to the plots;
 * 
