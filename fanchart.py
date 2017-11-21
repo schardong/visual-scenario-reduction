@@ -122,6 +122,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._highlighted_ts = None
         self._curvenames = None
         self._time_range = ()
+        self._hidden_curves = set()
 
         # Plot styles
         self._plot_title = self.base_plot_name()
@@ -301,6 +302,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
         if update_chart:
             self.update_chart(data_changed=True)
+            self._zphandler.set_base_transforms()
 
     def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
                             **kwargs):
@@ -348,6 +350,42 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             raise ValueError('Index out of range.')
         return idx in self._reference_idx
 
+    def set_draw_curve(self, idx, draw):
+        """
+        Sets wheter a curve should be drawn or not. Also works on
+        reference curves.
+
+        Parameters
+        ----------
+        idx: int
+            The curve's index.
+        draw: boolean
+            True to draw the curve, False to hide it.
+        """
+        if idx < 0 or idx > self.curves.shape[0]:
+            raise ValueError('Index out of range')
+
+        if not draw:
+            self._hidden_curves.add(idx)
+        else:
+            self._hidden_curves.discard(idx)
+
+        if self._plotted_lines and self._plotted_lines[idx]:
+            self._plotted_lines[idx].set_visible(draw)
+
+        self.draw()
+
+    def is_drawing_curve(self, idx):
+        """
+        Returns wheter the selected curve is hidden or not.
+        """
+        if idx < 0 or idx > self.curves.shape[0]:
+            raise ValueError('Index out of range')
+        if self._plotted_lines and self._plotted_lines[idx]:
+            return self._plotted_lines[idx].get_visible()
+        else:
+            return False
+
     def set_curve_tooltip(self, curve_idx):
         """
         Draws the tooltip over the selected curve
@@ -370,15 +408,27 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             self.draw()
             return
 
+        #if not self.is_drawing_curve(curve_idx):
+        #    print('Not drawing {}'.format(curve_idx))
+        #    return
+
+        # Fix bug here.
         color = 'black'
-        if curve_idx not in self._curves_colors:
+        print(self._reference_idx)
+        if curve_idx in self._reference_idx:
+            print("curve_idx is a reference = {}".format(curve_idx))
             color = self._reference_parameters[curve_idx]['color']
         else:
             color = self._curves_colors[curve_idx]
 
+        curr_xlim = self.axes.get_xlim()
+        curr_ylim = self.axes.get_ylim()
         self._hovered_line = self.axes.plot(
             self.curves[curve_idx, :], color=color,
             linewidth=self._plot_params['linewidth'] * 2)
+
+        self.axes.set_xlim(curr_xlim)
+        self.axes.set_ylim(curr_ylim)
 
         self.draw()
 
@@ -396,7 +446,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         self._fan_cmap_name = cmap_name
         if update_chart:
-            self.update_chart(data_changed=True)
+            self.update_chart(data_changed=True, apply_transforms=True)
 
     def set_lines_colormap(self, cmap_name, update_chart=True):
         """
@@ -412,7 +462,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         self._cmap_name = cmap_name
         if update_chart:
-            self.update_chart(data_changed=True)
+            self.update_chart(data_changed=True, apply_transforms=True)
 
     def set_plot_title(self, title, update_chart=True):
         """
@@ -428,7 +478,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         self._plot_title = title
         if update_chart:
-            self.update_chart(data_changed=True)
+            self.update_chart(data_changed=True, apply_transforms=True)
 
     def set_curvenames(self, curvenames):
         """
@@ -465,37 +515,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._time_range = (start, end)
         if update_chart:
             self.update_chart(data_changed=True)
-
-    def mark_timestep_range(self, start, end):
-        """
-        Marks the selected timestep range with two vertical lines. Mainly used
-        when linked to other plots, the user selects the desired timesteps, and
-        these are marked on this plot as well. If the timestep range equals
-        the total range of the plot, the marks will be erased.
-
-        Parameters
-        ----------
-        start: int
-            The first timestep.
-        end: int
-            The final timestep, this range is inclusive
-        """
-        if self._time_range_poly:
-            self._time_range_poly.set_visible(False)
-        if self.curves is None:
-            return
-        if not (start == 0 and end == self.curves.shape[1]):
-            self._time_range_poly = self.axes.axvspan(
-                start, end, facecolor='blue', alpha=0.2)
-
-        self._time_range = (start, end)
-        self.draw()
-
-    def reset_plot(self):
-        """
-        Resets the plot state, undoing all zoom and pan actions.
-        """
-        self.update_chart(data_changed=True)
+            self._zphandler.set_base_transforms()
 
     def update_chart(self, **kwargs):
         """
@@ -509,17 +529,25 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             return
 
         tr = range(self.time_range[0], self.time_range[1])
+        nref_idx = set(range(self.curves.shape[0])) - self._reference_idx
 
         if 'selected_data' in kwargs:
             # First, we clear the lines from the chart.
+            for l in self._plotted_lines:
+                if l is not None:
+                    l.set_visible(False)
 
-            nref_idx = set(range(self.curves.shape[0])) - self._reference_idx
-            for i in nref_idx:
-                self._plotted_lines[i].set_visible(False)
+#            for i in self._hidden_curves:
+#                self._plotted_lines[i].set_visible(False)
+
+#            visible_idx = set(range(self.curves.shape[0])) - self._hidden_curves
+#            for i in visible_idx:
+#                self._plotted_lines[i].set_visible(True)
 
             # Then we add the selected lines over it.
             for i in self.highlighted_data:
-                self._plotted_lines[i].set_visible(True)
+                if i not in self._hidden_curves:
+                    self._plotted_lines[i].set_visible(True)
 
         if 'data_changed' in kwargs:
             self.axes.cla()
@@ -529,12 +557,10 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             xmin, xmax = self.time_range
             self.axes.set_xlim([xmin, xmax - 1])
 
-            normal_idx = [i for i in range(len(self.curves))
-                          if i not in self._reference_idx]
             lines_colormap = cm.get_cmap(name=self.colormap_name,
                                          lut=len(self.curves))
             self._curves_colors = dict((i, lines_colormap(i))
-                                       for i in normal_idx)
+                                       for i in nref_idx)
 
             self._plotted_lines = [None] * self.curves.shape[0]
 
@@ -547,8 +573,6 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                          q=self.percentiles,
                          **self._plot_params)
 
-                nref_idx = set(
-                    range(self.curves.shape[0])) - self._reference_idx
                 for i in nref_idx:
                     self._plotted_lines[i] = self.axes.plot(
                         tr, self.curves[i, tr],
@@ -557,11 +581,10 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                 # We must add the selected data over the fanchart.
                 self.update_chart(selected_data=True)
 
-        # If we have reference curves, we plot them here.
-        for i in self._reference_idx:
-            self._plotted_lines[i] = self.axes.plot(tr,
-                                                    self.curves[i, tr],
-                                                    **self._reference_parameters[i])[0]
+                # If we have reference curves, we plot them here.
+                for i in self._reference_idx:
+                    self._plotted_lines[i] = self.axes.plot(
+                        tr, self.curves[i, tr], **self._reference_parameters[i])[0]
 
         if 'highlighted_timestep' in kwargs:
             # If the timestep indicator line is drawn, we set it as invisible
@@ -572,6 +595,9 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             if self.highlighted_timestep is not None:
                 self._vline = self.axes.axvline(x=self.highlighted_timestep,
                                                 **self._vline_props)
+
+        if 'apply_transforms' in kwargs:
+            self._zphandler.apply_transforms()
 
         self.draw()
 
@@ -669,7 +695,6 @@ def main():
             curves = np.vstack(
                 (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
 
-            self.fanchart.reset_plot()
             self.fanchart.set_curves(curves)
             self.fanchart.set_reference_curve(curves.shape[0] - 3,
                                               True, False, color='m')
@@ -691,21 +716,18 @@ def main():
 
         def enableP10(self):
             c = self.fanchart.curves.shape[0]
-            erase = not self.fanchart.is_reference_curve(c - 3)
-            self.fanchart.set_reference_curve(c - 3, erase,
-                                              True, color='m')
+            draw = self.fanchart.is_drawing_curve(c - 3)
+            self.fanchart.set_draw_curve(c - 3, not draw)
 
         def enableP50(self):
             c = self.fanchart.curves.shape[0]
-            erase = not self.fanchart.is_reference_curve(c - 2)
-            self.fanchart.set_reference_curve(c - 2, erase,
-                                              True, color='y')
+            draw = self.fanchart.is_drawing_curve(c - 2)
+            self.fanchart.set_draw_curve(c - 2, not draw)
 
         def enableP90(self):
             c = self.fanchart.curves.shape[0]
-            erase = not self.fanchart.is_reference_curve(c - 1)
-            self.fanchart.set_reference_curve(c - 1, erase,
-                                              True, color='c')
+            draw = self.fanchart.is_drawing_curve(c - 1)
+            self.fanchart.set_draw_curve(c - 1, not draw)
 
         def colormap_changed(self):
             opt = self.combo_colormap.currentText()
