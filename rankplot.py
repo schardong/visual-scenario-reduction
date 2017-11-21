@@ -164,7 +164,6 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self._plot_params['linewidth'] = 1.5
 
         self._perctext = None
-
         # Callback IDs
         self._cb_mouse_move_id = None
         self._cb_mouse_button_id = None
@@ -694,6 +693,13 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 if not art:
                     continue
                 art[0].set_linewidth(self._plot_params['linewidth'])
+
+        if self._ts_line is not None and self._hthresh_line in self.axes.lines:
+            self._ts_line.remove()
+
+        if self._hthresh_line is not None and self._hthresh_line in self.axes.lines:
+            self._hthresh_line.remove()
+
         self.draw()
 
     def update_chart(self, **kwargs):

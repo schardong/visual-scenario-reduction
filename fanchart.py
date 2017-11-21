@@ -423,9 +423,10 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         curr_xlim = self.axes.get_xlim()
         curr_ylim = self.axes.get_ylim()
         tr = range(self.time_range[0], self.time_range[1])
-        self._hovered_line = self.axes.plot(
-            self.curves[curve_idx, tr], color=color,
-            linewidth=self._plot_params['linewidth'] * 2)
+        self._hovered_line = self.axes.plot(range(self.time_range[0], self.time_range[1]),
+                                            self.curves[curve_idx,
+                                                        tr], color=color,
+                                            linewidth=self._plot_params['linewidth'] * 2)
 
         self.axes.set_xlim(curr_xlim)
         self.axes.set_ylim(curr_ylim)
