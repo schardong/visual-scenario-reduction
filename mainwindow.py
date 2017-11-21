@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
                              QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                              QLineEdit, QMainWindow, QMenu, QMessageBox,
                              QPushButton, QSpinBox, QStyleFactory, QVBoxLayout,
-                             QWidget, QSlider, QProxyStyle, QStyle)
+                             QWidget, QProxyStyle, QStyle)
 
 from fieldensemble import FieldEnsemble
 from plotwidget import PlotWidget
@@ -372,10 +372,15 @@ class MainWindow(QMainWindow):
         start_min, end_max = self._plt_widget.max_timerange
         _, end_ts = self._plt_widget.timerange
 
-        if value >= end_ts:
+        if value >= (end_ts - 5):
+            if end_ts == end_max:
+                sys.stdout.write('\a')
+                sys.stdout.flush()
+                return
+
             self._spin_end_ts.valueChanged.disconnect()
             if value < end_max:
-                end_ts = value + 1
+                end_ts = value + 5
                 self._spin_end_ts.setValue(end_ts)
             self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
 
@@ -390,10 +395,15 @@ class MainWindow(QMainWindow):
         start_min, end_max = self._plt_widget.max_timerange
         start_ts, _ = self._plt_widget.timerange
 
-        if value <= start_ts:
+        if value <= (start_ts + 5):
+            if start_ts == start_min:
+                sys.stdout.write('\a')
+                sys.stdout.flush()
+                return
+
             self._spin_start_ts.valueChanged.disconnect()
             if value > start_min:
-                start_ts = value - 1
+                start_ts = value - 5
                 self._spin_start_ts.setValue(start_ts)
             self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
@@ -433,9 +443,10 @@ class MainWindow(QMainWindow):
                 self._plt_widget.lamp_is_showing_p90())
 
             start_ts, end_ts = self._plt_widget.max_timerange
-            self._spin_start_ts.setMaximum(end_ts)
+            self._spin_start_ts.setMaximum(end_ts - 5)
             self._spin_start_ts.setValue(start_ts)
 
+            self._spin_end_ts.setMinimum(5)
             self._spin_end_ts.setMaximum(end_ts)
             self._spin_end_ts.setValue(end_ts)
 
