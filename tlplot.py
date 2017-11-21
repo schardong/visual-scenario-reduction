@@ -649,6 +649,24 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             for art in self.axes.lines:
                 art.set_linewidth(self.line_plot_params['linewidth'])
 
+        # Hiding any hidden curves previously highlighted by this call.
+        if self.plot_points:
+            for i, p in self._point_artists.items():
+                if i in self._hidden_curves:
+                    p.set_visible(False)
+        if self.plot_lines:
+            for i, p in self._line_artists.items():
+                if i in self._hidden_curves:
+                    p.set_visible(False)
+
+        # If the curve is a reference, we set their artists to visible,
+        # even if they were hidden before.
+        if curve_idx in self._reference_idx and curve_idx in self._hidden_curves:
+            if self.plot_points:
+                self._point_artists[curve_idx].set_visible(True)
+            if self.plot_lines:
+                self._line_artists[curve_idx].set_visible(True)
+
         if not curve_idx or curve_idx not in range(self.curves.shape[0]):
             self.draw()
             return
