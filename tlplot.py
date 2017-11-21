@@ -394,7 +394,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
 
         if update_chart:
             self.update_chart(data_changed=True, selected_data=True)
-            self.reset_plot()
+        self._zphandler.set_base_transforms()
 
     def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
                             **kwargs):
@@ -516,15 +516,22 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         if not start_time or start_time < 0:
             self._timestep_data[0] = 0
+            start_time = 0
         if not end_time:
             self._timestep_data[1] = self.curves.shape[1]
+            end_time = self.curves.shape[1]
         if not step_time:
             self._timestep_data[2] = 1
-        if self.start_time >= self.end_time[1]:
+            step_time = 1
+        if start_time >= end_time:
             raise AttributeError('Start time is larger or equal to end time.')
-        if self.step_time >= self.end_time - self.start_time:
+        if step_time >= end_time - start_time:
             raise AttributeError(
                 'Step time is larger than the given time range.')
+
+        self._timestep_data[0] = start_time
+        self._timestep_data[1] = end_time
+        self._timestep_data[2] = step_time
 
         self._update_projected_data()
         self._build_kdtree()
@@ -610,7 +617,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         self._cmap_name = cmap_name
         if update_chart:
-            self.update_chart(data_changed=True)
+            self.update_chart(data_changed=True, apply_transforms=True)
 
     def set_line_plot_params(self, **kwargs):
         """
@@ -893,6 +900,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.axes.set_yticklabels([])
             self.update_chart(selected_data=True)
 
+        if 'apply_transforms' in kwargs:
+            self._zphandler.apply_transforms()
+
         self.draw()
 
     # Private methods
@@ -943,8 +953,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if path_coords is None or len(path_coords) == 0:
             return
 
-        x = path_coords[:, 0]
-        y = path_coords[:, 1]
+        tr = range(self.start_time, self.end_time - 1)
+        x = path_coords[tr, 0]
+        y = path_coords[tr, 1]
 
         if self.plot_points:
             self._point_artists[curve_idx] = self.axes.scatter(

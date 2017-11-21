@@ -553,24 +553,23 @@ class PlotWidget(QWidget):
 
         self._child_plots['rank'].set_time_range(ts_start, ts_end)
         self._child_plots['fan'].set_time_range(ts_start, ts_end)
+        self._child_plots['tl'].set_timestep_data(ts_start, ts_end)
 
         # Reseting the distance chart's curves.
         color_list = ['m', 'c', 'g']
         marker_list = ['v', '<', '^']
-        keys = ['dist']
-        for k in keys:
-            plot = self._child_plots[k]
-            highlighted_data = plot.highlighted_data
-            plot.set_curves(
-                self._curves[:, ts_start:ts_end], update_chart=False)
-            N = self.curves.shape[0]
-            for i, idx in enumerate(range(N - 3, N)):
-                plot.set_reference_curve(idx, is_ref=True, update_chart=False,
-                                         color=color_list[i],
-                                         marker=marker_list[i])
+        plot = self._child_plots['dist']
+        highlighted_data = plot.highlighted_data
+        plot.set_curves(
+            self._curves[:, ts_start:ts_end], update_chart=False)
+        N = self.curves.shape[0]
+        for i, idx in enumerate(range(N - 3, N)):
+            plot.set_reference_curve(idx, is_ref=True, update_chart=False,
+                                     color=color_list[i],
+                                     marker=marker_list[i])
 
-            plot.highlight_data(highlighted_data, erase=False,
-                                update_chart=False)
+        plot.highlight_data(highlighted_data, erase=False,
+                            update_chart=False)
 
         # Setting the charts' baseline (erased by the previous 'set_curves'
         # call).
@@ -578,9 +577,6 @@ class PlotWidget(QWidget):
             self.set_baseline_curve('P50')
         else:
             self.set_baseline_curve(self.baseline_id)
-
-        # Setting the time range on the fanchart and bump chart.
-        # self._child_plots['fan'].mark_timestep_range(ts_start, ts_end)
 
 
 def plot_widget_main_test():
