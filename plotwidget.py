@@ -468,38 +468,35 @@ class PlotWidget(QWidget):
     def fan_show_p10(self):
         fan = self._child_plots['fan']
         c = fan.curves.shape[0]
-        erase = not fan.is_reference_curve(c - 3)
-        fan.set_reference_curve(c - 3, erase, True,
-                                color='m', marker='v')
+        draw = fan.is_drawing_reference_curve(c - 3)
+        fan.set_draw_reference_curve(c - 3, not draw)
 
     def fan_is_showing_p10(self):
         fan = self._child_plots['fan']
         c = fan.curves.shape[0]
-        return fan.is_reference_curve(c - 3)
+        return fan.is_drawing_reference_curve(c - 3)
 
     def fan_show_p50(self):
         fan = self._child_plots['fan']
         c = fan.curves.shape[0]
-        erase = not fan.is_reference_curve(c - 2)
-        fan.set_reference_curve(c - 2, erase, True,
-                                color='c', marker='<')
+        draw = fan.is_drawing_reference_curve(c - 2)
+        fan.set_draw_reference_curve(c - 2, not draw)
 
     def fan_is_showing_p50(self):
         fan = self._child_plots['fan']
         c = fan.curves.shape[0]
-        return fan.is_reference_curve(c - 2)
+        return fan.is_drawing_reference_curve(c - 2)
 
     def fan_show_p90(self):
         fan = self._child_plots['fan']
         c = fan.curves.shape[0]
-        erase = not fan.is_reference_curve(c - 1)
-        fan.set_reference_curve(c - 1, erase, True,
-                                color='g', marker='^')
+        draw = fan.is_drawing_reference_curve(c - 1)
+        fan.set_draw_reference_curve(c - 1, not draw)
 
     def fan_is_showing_p90(self):
         fan = self._child_plots['fan']
         c = fan.curves.shape[0]
-        return fan.is_reference_curve(c - 1)
+        return fan.is_drawing_reference_curve(c - 1)
 
     def lamp_show_p10(self):
         p = self._child_plots['tl']
