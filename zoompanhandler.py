@@ -27,6 +27,8 @@ class ZoomPanHandler:
         self._mouse_button = mouse_button
 
         self._press_coords = None
+        self._curr_xlim = self.axes.get_xlim()
+        self._curr_ylim = self.axes.get_ylim()
 
         # Mouse action callback IDs
         self._cb_mouse_wheel_id = None
@@ -52,6 +54,22 @@ class ZoomPanHandler:
     def mouse_button(self):
         return self._mouse_button
 
+    def apply_transforms(self):
+        """
+        Applies the zoom and pan transforms to the axes. Useful after reseting
+        the plot.
+        """
+        self.axes.set_xlim(self._curr_xlim)
+        self.axes.set_ylim(self._curr_ylim)
+
+    def set_base_transforms(self):
+        """
+        Queries the current axis limits and stores them.
+        """
+        self._curr_xlim = self.axes.get_xlim()
+        self._curr_ylim = self.axes.get_ylim()
+
+    # Private methods
     def _cb_mouse_wheel(self, event):
         if event.inaxes:
             curr_xlim = self.axes.get_xlim()
@@ -79,6 +97,9 @@ class ZoomPanHandler:
                 ylim = [ydata - ymin * self.scale_factor,
                         ydata + ymax * self.scale_factor]
 
+            self._curr_xlim = xlim
+            self._curr_ylim = ylim
+
             self.axes.set_xlim(xlim)
             self.axes.set_ylim(ylim)
 
@@ -100,6 +121,8 @@ class ZoomPanHandler:
         ylim = self.axes.get_ylim()
         xlim -= (event.xdata - self._press_coords[0])
         ylim -= (event.ydata - self._press_coords[1])
+        self._curr_xlim = xlim
+        self._curr_ylim = ylim
         self.axes.set_xlim(xlim)
         self.axes.set_ylim(ylim)
         self.axes.figure.canvas.draw()
