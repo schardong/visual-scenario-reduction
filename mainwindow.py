@@ -643,9 +643,12 @@ class MainWindow(QMainWindow):
         self._chk_show_p90_lamp = QCheckBox('Show P90', box)
         self._chk_show_p90_lamp.clicked.connect(self._plt_widget.lamp_show_p90)
 
+        glyph_layout = QHBoxLayout()
+        glyph_layout.addWidget(self._chk_plot_points)
+        glyph_layout.addWidget(self._chk_plot_lines)
+
         box_layout = QVBoxLayout()
-        box_layout.addWidget(self._chk_plot_points)
-        box_layout.addWidget(self._chk_plot_lines)
+        box_layout.addLayout(glyph_layout)
         box_layout.addWidget(self._chk_show_p90_lamp)
         box_layout.addWidget(self._chk_show_p50_lamp)
         box_layout.addWidget(self._chk_show_p10_lamp)

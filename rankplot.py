@@ -722,7 +722,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if 'data_changed' in kwargs:
             self.axes.cla()
             self.axes.set_title(self.plot_title)
-            self.axes.set_xlabel('Timestep')
+            fmt_xlab = 'Timestep ({} baseline)'
+            if not self.curvenames:
+                fmt_xlab = fmt_xlab.format(self._baseline_idx)
+            else:
+                fmt_xlab = fmt_xlab.format(
+                    self._curvenames[self._baseline_idx])
+
+            self.axes.set_xlabel(fmt_xlab)
             self.axes.set_ylabel('Rank')
             xmin, xmax = self.time_range
             ymax = self._curves.shape[0]
@@ -744,12 +751,12 @@ class RankChart(FigureCanvas, BrushableCanvas):
             self.axes.spines[ospine].set_color('black')
 
             # Removing/redrawing the baseline text.
-            if self._perctext:
-                self._perctext.remove()
-            if self.curvenames:
-                self._perctext = self.axes.figure.text(
-                    0.9, ycoord, self.curvenames[self._baseline_idx],
-                    color=self._reference_parameters[self._baseline_idx]['color'])
+#            if self._perctext:
+#                self._perctext.remove()
+#            if self.curvenames:
+#                self._perctext = self.axes.figure.text(
+#                    0.9, ycoord, self.curvenames[self._baseline_idx],
+#                    color=self._reference_parameters[self._baseline_idx]['color'])
 
             self._plotted_series = [None] * self.curves.shape[0]
 
