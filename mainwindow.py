@@ -8,7 +8,7 @@ Application main window plus tests.
 import os
 import sys
 
-from PyQt5.QtCore import QDir, Qt
+from PyQt5.QtCore import QDir, Qt, QSize
 from PyQt5.QtGui import QIntValidator, QPixmap
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
                              QDesktopWidget, QFileDialog, QFormLayout,
@@ -446,8 +446,7 @@ class MainWindow(QMainWindow):
             self._spin_start_ts.setMaximum(end_ts - 5)
             self._spin_start_ts.setValue(start_ts)
 
-            self._spin_end_ts.setMinimum(5)
-            self._spin_end_ts.setMaximum(end_ts)
+            self._spin_end_ts.setRange(5, end_ts)
             self._spin_end_ts.setValue(end_ts)
 
             QApplication.restoreOverrideCursor()
@@ -466,6 +465,7 @@ class MainWindow(QMainWindow):
 
         self._main_widget = QWidget(self)
         lay = QHBoxLayout(self._main_widget)
+        lay.setSpacing(2)
         lay.addWidget(self._plt_widget)
 
         # Building the graphics options panel section
@@ -481,6 +481,7 @@ class MainWindow(QMainWindow):
         self._legend_box = self._build_percentile_legend_box()
 
         graphics_layout = QVBoxLayout()
+        graphics_layout.setSpacing(2)
         graphics_layout.addWidget(self._global_graphical_box)
         graphics_layout.addWidget(self._timestep_box)
         graphics_layout.addWidget(self._fanchart_box)
@@ -518,6 +519,7 @@ class MainWindow(QMainWindow):
         box = QGroupBox('Algorithm Options', self)
 
         form_layout = QFormLayout()
+        form_layout.setSpacing(1)
         form_layout.setRowWrapPolicy(QFormLayout.DontWrapRows)
         form_layout.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
         form_layout.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
@@ -543,6 +545,7 @@ class MainWindow(QMainWindow):
         clear_selected_data.clicked.connect(self.clear_selected_data)
 
         box_layout = QVBoxLayout()
+        box_layout.setSpacing(1)
         box_layout.addLayout(form_layout)
         box_layout.addWidget(clear_selected_data)
         box.setLayout(box_layout)
@@ -571,9 +574,11 @@ class MainWindow(QMainWindow):
 
         colormap_label = QLabel('Data Color Pallete:')
         colormap_layout = QFormLayout()
+        colormap_layout.setSpacing(1)
         colormap_layout.addRow(colormap_label, self._combo_data_colormap)
 
         box_layout = QVBoxLayout()
+        box_layout.setSpacing(1)
         box_layout.addLayout(colormap_layout)
         # box_layout.addWidget(save_plots_btn)
         box.setLayout(box_layout)
@@ -582,6 +587,11 @@ class MainWindow(QMainWindow):
 
     def _build_timestep_options_box(self):
         """
+        Builds a QGroupBox with the timestep selection controls.
+
+        Returns
+        -------
+        A QGroupBox with the timestep selection UI elements.
         """
         box = QGroupBox('Timestep selection', self)
 
@@ -589,18 +599,22 @@ class MainWindow(QMainWindow):
         lbl_end_ts = QLabel('End time', self._main_widget)
 
         self._spin_start_ts = QSpinBox(self._main_widget)
+        self._spin_start_ts.setMaximumSize(QSize(300, 25))
         self._spin_start_ts.setKeyboardTracking(False)
         self._spin_start_ts.setValue(0)
         self._spin_start_ts.setStyle(SpinBoxCustomStyle())
         self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
         self._spin_end_ts = QSpinBox(self._main_widget)
+        print(self._spin_end_ts.size())
+        self._spin_end_ts.setMaximumSize(QSize(300, 25))
         self._spin_end_ts.setKeyboardTracking(False)
         self._spin_end_ts.setValue(0)
         self._spin_end_ts.setStyle(SpinBoxCustomStyle())
         self._spin_end_ts.valueChanged.connect(self.set_end_timestep)
 
         layout_ts = QFormLayout(self._main_widget)
+        layout_ts.setSpacing(1)
         layout_ts.addRow(lbl_start_ts, self._spin_start_ts)
         layout_ts.addRow(lbl_end_ts, self._spin_end_ts)
         box.setLayout(layout_ts)
@@ -648,6 +662,7 @@ class MainWindow(QMainWindow):
         glyph_layout.addWidget(self._chk_plot_lines)
 
         box_layout = QVBoxLayout()
+        box_layout.setSpacing(1)
         box_layout.addLayout(glyph_layout)
         box_layout.addWidget(self._chk_show_p90_lamp)
         box_layout.addWidget(self._chk_show_p50_lamp)
@@ -680,6 +695,7 @@ class MainWindow(QMainWindow):
             self._plt_widget.get_group_selection_distchart())
 
         box_layout = QVBoxLayout()
+        box_layout.setSpacing(1)
         box_layout.addWidget(chk_log_scale)
         box_layout.addWidget(chk_group_selection)
         box.setLayout(box_layout)
@@ -717,6 +733,7 @@ class MainWindow(QMainWindow):
         self._chk_show_p90.clicked.connect(self._plt_widget.fan_show_p90)
 
         form_layout = QFormLayout()
+        form_layout.setSpacing(1)
         form_layout.setRowWrapPolicy(QFormLayout.DontWrapRows)
         form_layout.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
         form_layout.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
@@ -724,6 +741,7 @@ class MainWindow(QMainWindow):
         form_layout.addRow(color_label, self._combo_fan_color_pallete)
 
         box_layout = QVBoxLayout()
+        box_layout.setSpacing(1)
         box_layout.addLayout(form_layout)
         box_layout.addWidget(self._chk_show_p90)
         box_layout.addWidget(self._chk_show_p50)
@@ -779,6 +797,7 @@ class MainWindow(QMainWindow):
         p90_label = QLabel('P90', box)
 
         box_layout = QFormLayout()
+        box_layout.setSpacing(1)
         box_layout.setRowWrapPolicy(QFormLayout.DontWrapRows)
         box_layout.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
         box_layout.setFormAlignment(Qt.AlignLeft | Qt.AlignTop)
