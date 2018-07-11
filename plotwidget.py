@@ -415,6 +415,26 @@ class PlotWidget(QWidget):
         """
         return self._child_plots['tl'].plot_brush_stroke
 
+    def set_opacity_by_timestep_tlchart(self, state):
+        """
+        Sets wheter the opacity should vary according to the timestep.
+
+        Parameters
+        ----------
+        state: boolean
+            True to enable variable opacity, False otherwise.
+        """
+        self._child_plots['tl'].set_opacity_by_timestep(state)
+
+    def get_opacity_by_timestep_tlchart(self):
+        """
+        Returns if the opacity varies according to the timestep or not.
+
+        Returns
+        -------
+        True if the opacity varies according to the timestep, False otherwise.
+        """
+        return self._child_plots['tl'].opacity_by_timestep
 
     def set_log_scale_distchart(self, log_scale):
         """

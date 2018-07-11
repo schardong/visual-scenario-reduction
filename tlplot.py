@@ -149,6 +149,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._plot_params = kwargs
         self._brush_size_lims = (5, 35)
+        self._opacity_by_timestep = False
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 3
 
@@ -336,6 +337,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         lines.
         """
         return self._plot_line_params
+
+    @property
+    def opacity_by_timestep(self):
+        """
+        Returns wheter the opacity is constant for each series, or not.
+        """
+        return self._opacity_by_timestep
 
     def set_notify_timestep_callback(self, func):
         """
@@ -665,6 +673,22 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         kwargs: Keyword arguments
         """
         self._plot_point_params = kwargs
+
+    def set_opacity_by_timestep(self, state, update_chart=True):
+        """
+        Sets wheter the opacity is constant for each series or not.
+
+        Parameters
+        ----------
+        state: boolean
+            True for variable opacity, False for constant opacity.
+        update_chart: boolean
+            Switch to indicate if the plot should be updated. Default value
+            is True.
+        """
+        self._opacity_by_timestep = state
+        if update_chart:
+            self.update_chart(plot_glyph=True)
 
     def set_curve_tooltip(self, curve_idx):
         """
@@ -1027,28 +1051,27 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 interp_x.extend(xnew)
                 interp_y.extend(ynew)
 
-            alpha = np.linspace(0.5, 0.01, 2 * len(interp_x) / 3)
-            alpha = np.concatenate([alpha, [0.01] * (len(interp_x) - len(alpha))])
+            if self.opacity_by_timestep:
+                alpha = np.linspace(0.5, 0.01, 2 * len(interp_x) / 3)
+                alpha = np.concatenate([alpha, [0.01] * (len(interp_x) - len(alpha))])
 
-            letter_to_color = {
-                'r': (1, 0, 0, 1),
-                'g': (0, 1, 0, 1),
-                'b': (0, 0, 1, 1),
-                'm': (1, 0, 1, 1),
-                'c': (0, 1, 1, 1),
-                'y': (1, 1, 0, 1),
-                'b': (0, 0, 0, 1),
-            }
+                letter_to_color = {
+                    'r': (1, 0, 0, 1),
+                    'g': (0, 1, 0, 1),
+                    'b': (0, 0, 1, 1),
+                    'm': (1, 0, 1, 1),
+                    'c': (0, 1, 1, 1),
+                    'y': (1, 1, 0, 1),
+                    'b': (0, 0, 0, 1),
+                }
             
-            color = kwargs['color'] if 'color' in kwargs else 'blue'
-            color = letter_to_color[color] if isinstance(color, str) else color
-            rgba_color = [color[0:3] + (a,) for a in alpha]
-
-            if 'color' in kwargs:
+                color = kwargs['color'] if 'color' in kwargs else 'blue'
+                color = letter_to_color[color] if isinstance(color, str) else color
+                rgba_color = [color[0:3] + (a,) for a in alpha]
                 kwargs['color'] = rgba_color
 
-            lwidths = np.linspace(self._brush_size_lims[0],
-                                  self._brush_size_lims[1]*6,
+            lwidths = np.linspace(self._brush_size_lims[1] * 5,
+                                  self._brush_size_lims[0],
                                   len(interp_x))
             c = self.axes.scatter(interp_x, interp_y,
                                   s=lwidths, **kwargs)

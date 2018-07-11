@@ -106,6 +106,8 @@ class MainWindow(QMainWindow):
         self._chk_show_p10 = None
         self._chk_show_p50 = None
         self._chk_show_p90 = None
+        self._chk_plot_brush_strokes = None
+        self._chk_opacity_by_ts = None
         self._chk_show_p10_lamp = None
         self._chk_show_p50_lamp = None
         self._chk_show_p90_lamp = None
@@ -296,8 +298,13 @@ class MainWindow(QMainWindow):
         checked = (state == Qt.Checked)
         self._plt_widget.set_plot_points_tlchart(checked)
 
-        if not checked and not self._chk_plot_lines.isChecked():
-            self._chk_plot_lines.setChecked(True)
+        # Point and brush plots are mutually exclusive.
+        if not self._chk_plot_brush_strokes.isChecked():
+            if not checked and not self._chk_plot_lines.isChecked():
+                self._chk_plot_lines.setChecked(True)
+
+        if checked and self._plt_widget.get_plot_brush_strokes_tlchart():
+            self._chk_plot_brush_strokes.setChecked(False)
 
     def set_plot_lines_tlchart(self, state):
         """
@@ -307,14 +314,22 @@ class MainWindow(QMainWindow):
         checked = (state == Qt.Checked)
         self._plt_widget.set_plot_lines_tlchart(checked)
 
-        if not checked and not self._chk_plot_points.isChecked():
-            self._chk_plot_points.setChecked(True)
+        if not self._chk_plot_brush_strokes.isChecked():
+            if not checked and not self._chk_plot_points.isChecked():
+                self._chk_plot_points.setChecked(True)
+
+        if checked and self._plt_widget.get_plot_brush_strokes_tlchart():
+            self._chk_plot_brush_strokes.setChecked(False)
 
     def set_plot_brush_strokes_tlchart(self, state):
         """
         """
         checked = (state == Qt.Checked)
         self._plt_widget.set_plot_brush_strokes_tlchart(checked)
+
+        if checked:
+            self._chk_plot_lines.setChecked(False)
+            self._chk_plot_points.setChecked(False)
 
     def set_ts_highlight_tlchart(self, state):
         """
@@ -575,8 +590,8 @@ class MainWindow(QMainWindow):
         for k in self.DATA_OPTIONS_ORDERING:
             self._combo_data_colormap.addItem(k)
 
-        # save_plots_btn = QPushButton('Save plots to PDF', self)
-        # save_plots_btn.clicked.connect(self.save_plots)
+        save_plots_btn = QPushButton('Save plots to PDF', self)
+        save_plots_btn.clicked.connect(self.save_plots)
 
         colormap_label = QLabel('Data Color Pallete:')
         colormap_layout = QFormLayout()
@@ -586,7 +601,7 @@ class MainWindow(QMainWindow):
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)
         box_layout.addLayout(colormap_layout)
-        # box_layout.addWidget(save_plots_btn)
+        box_layout.addWidget(save_plots_btn)
         box.setLayout(box_layout)
         box.setEnabled(False)
         return box
@@ -655,6 +670,11 @@ class MainWindow(QMainWindow):
             self._plt_widget.get_plot_brush_strokes_tlchart())
         self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
 
+        self._chk_opacity_by_ts = QCheckBox('Opacity by timestep', self._main_widget)
+        self._chk_opacity_by_ts.setChecked(self._plt_widget.get_opacity_by_timestep_tlchart())
+        self._chk_opacity_by_ts.clicked.connect(
+            self._plt_widget.set_opacity_by_timestep_tlchart)
+
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
         # chk_ts_highlight.stateChanged.connect(self.set_ts_highlight_tlchart)
@@ -672,6 +692,7 @@ class MainWindow(QMainWindow):
         glyph_layout.addWidget(self._chk_plot_points)
         glyph_layout.addWidget(self._chk_plot_lines)
         glyph_layout.addWidget(self._chk_plot_brush_strokes)
+        glyph_layout.addWidget(self._chk_opacity_by_ts)
 
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)
