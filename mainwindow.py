@@ -310,6 +310,12 @@ class MainWindow(QMainWindow):
         if not checked and not self._chk_plot_points.isChecked():
             self._chk_plot_points.setChecked(True)
 
+    def set_plot_brush_strokes_tlchart(self, state):
+        """
+        """
+        checked = (state == Qt.Checked)
+        self._plt_widget.set_plot_brush_strokes_tlchart(checked)
+
     def set_ts_highlight_tlchart(self, state):
         """
         Sets wheter the timestep highlight is enabled for the projection chart.
@@ -644,6 +650,11 @@ class MainWindow(QMainWindow):
             self._plt_widget.get_plot_lines_tlchart())
         self._chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
 
+        self._chk_plot_brush_strokes = QCheckBox('Show brush strokes', self._main_widget)
+        self._chk_plot_brush_strokes.setChecked(
+            self._plt_widget.get_plot_brush_strokes_tlchart())
+        self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
+
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
         # chk_ts_highlight.stateChanged.connect(self.set_ts_highlight_tlchart)
@@ -657,9 +668,10 @@ class MainWindow(QMainWindow):
         self._chk_show_p90_lamp = QCheckBox('Show P90', box)
         self._chk_show_p90_lamp.clicked.connect(self._plt_widget.lamp_show_p90)
 
-        glyph_layout = QHBoxLayout()
+        glyph_layout = QVBoxLayout()
         glyph_layout.addWidget(self._chk_plot_points)
         glyph_layout.addWidget(self._chk_plot_lines)
+        glyph_layout.addWidget(self._chk_plot_brush_strokes)
 
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)

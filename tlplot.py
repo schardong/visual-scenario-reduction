@@ -9,6 +9,7 @@ import math
 import numpy as np
 import scipy.spatial.distance
 import sklearn.manifold
+from matplotlib.collections import LineCollection
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -16,6 +17,7 @@ from matplotlib import cm
 from PyQt5.QtCore import QPoint
 from PyQt5.QtWidgets import QSizePolicy, QToolTip
 from PyQt5.QtGui import QFont, QPalette, QColor
+from scipy.interpolate import interp1d
 
 from brushableplot import BrushableCanvas
 from mp import time_lapse_lamp
@@ -138,12 +140,15 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         # Plot styles
         self._plot_lines = False
         self._plot_points = True
+        self._plot_brush_stroke = False
         self._point_artists = {}
         self._line_artists = {}
+        self._brush_stroke_artists = {}
         self._plot_title = self.base_plot_name()
         self._reference_parameters = {}
         self._cmap_name = 'rainbow'
         self._plot_params = kwargs
+        self._brush_size_lims = (5, 35)
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 3
 
@@ -268,6 +273,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         Returns True if we are plotting lines over the projections.
         """
         return self._plot_lines
+
+    @property
+    def plot_brush_stroke(self):
+        """
+        Returns True if we are plotting brush strokes over the projections.
+        """
+        return self._plot_brush_stroke
 
     @property
     def plot_title(self):
@@ -471,6 +483,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self._point_artists[idx].set_visible(draw)
         if self._line_artists and self._line_artists[idx]:
             self._line_artists[idx].set_visible(draw)
+        if self._brush_stroke_artists and self._brush_stroke_artists[idx]:
+            self._brush_stroke_artists[idx].set_visible(draw)
 
         self.draw()
 
@@ -484,6 +498,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             return self._point_artists[idx].get_visible()
         elif self._line_artists:
             return self._line_artists[idx].get_visible()
+        elif self._brush_stroke_artists:
+            return self._brush_stroke_artists[idx].get_visible()
         else:
             raise AttributeError('No draw call made yet')
 
@@ -563,7 +579,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated now.
         """
         self._plot_points = plot_points
-        if not self._plot_points and not self._plot_lines:
+        if not self._plot_points and not self._plot_lines and not self._plot_brush_stroke:
             self.set_plot_lines(True, update_chart=update_chart)
             return
         if update_chart:
@@ -581,7 +597,18 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated now.
         """
         self._plot_lines = plot_lines
-        if not self._plot_lines and not self._plot_points:
+        if not self._plot_lines and not self._plot_points and not self._plot_brush_stroke:
+            self.set_plot_points(True, update_chart=update_chart)
+            return
+        if update_chart:
+            self.update_chart(plot_glyph=True)
+
+    def set_plot_brush_stroke(self, plot_brush_stroke, update_chart=True):
+        self._plot_brush_stroke = plot_brush_stroke
+        if plot_brush_stroke:
+            self.set_plot_points(False, update_chart=False)
+            self.set_plot_lines(False, update_chart=False)
+        if not self._plot_lines and not self._plot_points and not self._plot_brush_stroke:
             self.set_plot_points(True, update_chart=update_chart)
             return
         if update_chart:
@@ -649,12 +676,15 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             The index of the curve to draw the tooltip on.
         """
         # Restoring the points/lines sizes.
-        if self.plot_points:
-            for art in self.axes.collections:
-                art.set_sizes([self.point_plot_params['s']])
-        if self.plot_lines:
-            for art in self.axes.lines:
-                art.set_linewidth(self.line_plot_params['linewidth'])
+        #if self.plot_points:
+        #    for art in self.axes.collections:
+        #        if isinstance(art, LineCollection):
+        #            art.set_linewidths(3)
+        #        else:
+        #            art.set_sizes([self.point_plot_params['s']])
+        #if self.plot_lines:
+        #    for art in self.axes.lines:
+        #        art.set_linewidth(self.line_plot_params['linewidth'])
 
         # Hiding any hidden curves previously highlighted by this call.
         if self.plot_points:
@@ -665,6 +695,10 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             for i, p in self._line_artists.items():
                 if i in self._hidden_curves:
                     p.set_visible(False)
+        if self.plot_brush_stroke:
+            for i, p in self._brush_stroke_artists.items():
+                if i in self._hidden_curves:
+                    p.set_visible(False)
 
         # If the curve is a reference, we set their artists to visible,
         # even if they were hidden before.
@@ -673,14 +707,17 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 self._point_artists[curve_idx].set_visible(True)
             if self.plot_lines:
                 self._line_artists[curve_idx].set_visible(True)
+            if self.plot_brush_stroke:
+                self._brush_stroke_artists[curve_idx].set_visible(True)
 
         if not curve_idx or curve_idx not in range(self.curves.shape[0]):
             self.draw()
             return
 
         if self.plot_points:
-            art = self.axes.collections[curve_idx]
-            art.set_sizes([self.point_plot_params['s'] * 3])
+            #art = self.axes.collections[curve_idx]
+            #art.set_sizes([self.point_plot_params['s'] * 3])
+            pass
         if self.plot_lines:
             art = self.axes.lines[curve_idx]
             art.set_linewidth(self.line_plot_params['linewidth'] * 2)
@@ -744,10 +781,16 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         event: matplotlib.backend_bases.MouseEvent
             Data about the event.
         """
-        # Restoting the original parameters.
+        # Restoring the original parameters.
         if self.plot_points:
             for art in self.axes.collections:
-                art.set_sizes([self.point_plot_params['s']])
+                if isinstance(art, LineCollection):
+                    lwidths = np.linspace(self._brush_size_lims[0],
+                                          self._brush_size_lims[1],
+                                          self.curves.shape[1])
+                    art.set_linewidths(lwidths)
+                else:
+                    art.set_sizes([self.point_plot_params['s']])
         if self.plot_lines:
             for art in self.axes.lines:
                 art.set_linewidth(self.line_plot_params['linewidth'])
@@ -783,7 +826,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             if self.curvenames:
                 if self.plot_points:
                     art = self.axes.collections[pidx]
-                    art.set_sizes([self.point_plot_params['s'] * 3])
+                    if isinstance(art, LineCollection):
+                        lwidths = np.linspace(self._brush_size_lims[0],
+                                              3*self._brush_size_lims[1],
+                                              self.curves.shape[1])
+                        art.set_linewidths(lwidths)
+                    else:
+                        art.set_sizes([self.point_plot_params['s'] * 3])
                 if self.plot_lines:
                     art = self.axes.lines[pidx]
                     art.set_linewidth(self.line_plot_params['linewidth'] * 2)
@@ -878,6 +927,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.axes.set_ylabel('Axis 2')
             self._point_artists = {}
             self._line_artists = {}
+            self._brush_stroke_artists = {}
 
             colormap = cm.get_cmap(name=self.colormap_name,
                                    lut=len(self.curves))
@@ -895,6 +945,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                     self._point_artists[i].set_visible(False)
                 if self._line_artists and self._line_artists[i]:
                     self._line_artists[i].set_visible(False)
+                if self._brush_stroke_artists and self._brush_stroke_artists[i]:
+                    self._brush_stroke_artists[i].set_visible(False)
 
             self.axes.set_xticklabels([])
             self.axes.set_yticklabels([])
@@ -963,6 +1015,44 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if self.plot_lines:
             self._line_artists[curve_idx] = self.axes.plot(
                 x, y, **{**self.line_plot_params, **kwargs})[0]
+        if self.plot_brush_stroke:
+            interp_x = []
+            interp_y = []
+            for i in range(1, len(x)):
+                f = interp1d([x[i-1], x[i]],
+                             [y[i-1], y[i]])
+                xnew = np.linspace(x[i-1], x[i], 60)
+                ynew = f(xnew)
+
+                interp_x.extend(xnew)
+                interp_y.extend(ynew)
+
+            alpha = np.linspace(0.5, 0.01, 2 * len(interp_x) / 3)
+            alpha = np.concatenate([alpha, [0.01] * (len(interp_x) - len(alpha))])
+
+            letter_to_color = {
+                'r': (1, 0, 0, 1),
+                'g': (0, 1, 0, 1),
+                'b': (0, 0, 1, 1),
+                'm': (1, 0, 1, 1),
+                'c': (0, 1, 1, 1),
+                'y': (1, 1, 0, 1),
+                'b': (0, 0, 0, 1),
+            }
+            
+            color = kwargs['color'] if 'color' in kwargs else 'blue'
+            color = letter_to_color[color] if isinstance(color, str) else color
+            rgba_color = [color[0:3] + (a,) for a in alpha]
+
+            if 'color' in kwargs:
+                kwargs['color'] = rgba_color
+
+            lwidths = np.linspace(self._brush_size_lims[0],
+                                  self._brush_size_lims[1]*6,
+                                  len(interp_x))
+            c = self.axes.scatter(interp_x, interp_y,
+                                  s=lwidths, **kwargs)
+            self._brush_stroke_artists[curve_idx] = c
 
     def _update_projected_data(self):
         """
@@ -1053,6 +1143,8 @@ def main():
             points_button.clicked.connect(self.switch_point_state)
             lines_button = QPushButton('Plot lines', self)
             lines_button.clicked.connect(self.switch_line_state)
+            brush_stroke_button = QPushButton('Plot brush stroke', self)
+            brush_stroke_button.clicked.connect(self.switch_brush_stroke_state)
             p10_button = QPushButton('Enable P10', self)
             p10_button.clicked.connect(self.enableP10)
             p50_button = QPushButton('Enable P50', self)
@@ -1071,6 +1163,7 @@ def main():
             button_layout = QVBoxLayout(self.main_widget)
             button_layout.addWidget(points_button)
             button_layout.addWidget(lines_button)
+            button_layout.addWidget(brush_stroke_button)
             button_layout.addWidget(p90_button)
             button_layout.addWidget(p50_button)
             button_layout.addWidget(p10_button)
@@ -1087,6 +1180,9 @@ def main():
 
         def switch_point_state(self):
             self.lamp.set_plot_points(not self.lamp.plot_points)
+
+        def switch_brush_stroke_state(self):
+            self.lamp.set_plot_brush_stroke(not self.lamp.plot_brush_stroke)
 
         def update_data(self):
             curves = np.random.normal(size=(10, 50))

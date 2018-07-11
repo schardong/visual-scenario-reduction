@@ -392,6 +392,30 @@ class PlotWidget(QWidget):
         """
         return self._child_plots['tl'].plot_lines
 
+    def set_plot_brush_strokes_tlchart(self, plot_brush_stroke):
+        """
+        Sets wheter the time-lapsed projection chart should plot brush strokes
+        connecting the projected points.
+
+        Parameters
+        ----------
+        plot_lines: boolean
+            True to enable line plotting, False to disable it.
+        """
+        self._child_plots['tl'].set_plot_brush_stroke(plot_brush_stroke)
+
+    def get_plot_brush_strokes_tlchart(self):
+        """
+        Returns if the time-lapsed projection chart is plotting the brush strokes
+        connecting the projection points.
+
+        Returns
+        -------
+        True if line plotting is enabled.
+        """
+        return self._child_plots['tl'].plot_brush_stroke
+
+
     def set_log_scale_distchart(self, log_scale):
         """
         Sets wheter the distances should be converted to log_10 scale.
