@@ -9,7 +9,9 @@ import math
 import numpy as np
 import scipy.spatial.distance
 import sklearn.manifold
+from enum import Enum
 from matplotlib.collections import LineCollection
+from matplotlib.colors import to_rgba
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -75,6 +77,20 @@ def _plot_timelapse_lamp(ax, point_list, plot_points=True,
     return (scatter_artists, plot_artists)
 
 
+class OpacityMapType(Enum):
+    CONSTANT = 'constant'
+    LINEAR_INC = 'linear_increasing'
+    LINEAR_DEC = 'linear_decreasing'
+    VARIANCE = 'variance'
+
+
+class GlyphSizeMap(Enum):
+    CONSTANT = 'constant'
+    LINEAR_INC = 'linear_increasing'
+    LINEAR_DEC = 'linear_decreasing'
+    VARIANCE = 'variance'
+
+
 class TimeLapseChart(FigureCanvas, BrushableCanvas):
     """
     This class builds a series of successive multidimensional projections of
@@ -135,6 +151,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._dims = 2
         self._tree = None
         self._curvenames = None
+        self._ts_variance = None
         self._hidden_curves = set()
 
         # Plot styles
@@ -149,7 +166,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._plot_params = kwargs
         self._brush_size_lims = (5, 35)
-        self._opacity_by_timestep = False
+        self._opacity_map = OpacityMapType.CONSTANT
+        self._glyph_size_map = GlyphSizeMap.CONSTANT
+
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 3
 
@@ -339,11 +358,18 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         return self._plot_line_params
 
     @property
-    def opacity_by_timestep(self):
+    def opacity_map_type(self):
         """
-        Returns wheter the opacity is constant for each series, or not.
+        Returns the type of opacity map to use (constant, linear or variance based).
         """
-        return self._opacity_by_timestep
+        return self._opacity_map
+
+    @property
+    def glyph_size_type(self):
+        """
+        Returns the type of glyph size map to use (constant, linear, or variance based).
+        """
+        return self._glyph_size_map
 
     def set_notify_timestep_callback(self, func):
         """
@@ -395,6 +421,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the chart should be updated at the end of the
             function.
         """
+        v = np.var(curves, axis=0)
+        a, b = np.min(v), np.max(v)
+        v = (v - a) / (b - a)
+
+        self._ts_variance = v
         self._curves = curves
 
         # Fixing the end timestep
@@ -674,19 +705,35 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         self._plot_point_params = kwargs
 
-    def set_opacity_by_timestep(self, state, update_chart=True):
+    def set_opacity_map_type(self, ommap, update_chart=True):
         """
-        Sets wheter the opacity is constant for each series or not.
+        Sets the type of opacity map to use when plotting the series.
 
         Parameters
         ----------
-        state: boolean
-            True for variable opacity, False for constant opacity.
+        state: OpacityMapType or str
+            Either the Enum OpacityMapType or a string with the map type.
         update_chart: boolean
             Switch to indicate if the plot should be updated. Default value
             is True.
         """
-        self._opacity_by_timestep = state
+        self._opacity_map = ommap if isinstance(ommap, OpacityMapType) else OpacityMapType(ommap)
+        if update_chart:
+            self.update_chart(plot_glyph=True)
+
+    def set_glyph_size_type(self, gsmap, update_chart=True):
+        """
+        Sets the type of mapping for the plot glyph sizes.
+
+        Parameters
+        ----------
+        gsmap: GlyphSizeMap or str
+            Either the Enum GlyphSizeMap or a string with the mapping type.
+        update_chart: boolean
+            Switch to indicate if the plot should be updated. Default value
+            is True.
+        """
+        self._glyph_size_map = gsmap if isinstance(gsmap, GlyphSizeMap) else GlyphSizeMap(gsmap)
         if update_chart:
             self.update_chart(plot_glyph=True)
 
@@ -956,7 +1003,24 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             colormap = cm.get_cmap(name=self.colormap_name,
                                    lut=len(self.curves))
             for i in nref_idx:
-                self._plot_params['color'] = colormap(i)
+                # Handling the alpha mapping.
+                #alpha = []
+                #if self.opacity_map_type == OpacityMapType.CONSTANT:
+                #    alpha = [1.0] * self.curves.shape[0]
+                #elif self.opacity_map_type == OpacityMapType.LINEAR_INC:
+                #    alpha = np.linspace(0.01, 0.95, self.curves.shape[0])
+                #elif self.opacity_map_type == OpacityMapType.LINEAR_DEC:
+                #    alpha = np.linspace(0.95, 0.01, self.curves.shape[0])
+                #elif self.opacity_map_type == OpacityMapType.VARIANCE:
+                #    alpha = self._ts_variance
+                #else:
+                #    raise ValueError('Invalid opacity map type defined.')
+
+                #color = colormap(i)
+                #rgba_color = [color[0:3] + (a,) for a in alpha]
+                #self._plot_params['color'] = rgba_color
+
+                #self._plot_params['color'] = colormap(i)
                 self._plot_path_projection(self.projected_curves[i], i,
                                            **self._plot_params)
 
@@ -974,7 +1038,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
 
             self.axes.set_xticklabels([])
             self.axes.set_yticklabels([])
-            self.update_chart(selected_data=True)
+            #self.update_chart(selected_data=True)
 
         if 'apply_transforms' in kwargs:
             self._zphandler.apply_transforms()
@@ -1033,48 +1097,55 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         x = path_coords[tr, 0]
         y = path_coords[tr, 1]
 
+        # Handling the glyph size mapping.
+        # TODO
+
+        # Plotting the selected glyph types.
         if self.plot_points:
+            # Handling colors with the new alpha values.
             self._point_artists[curve_idx] = self.axes.scatter(
                 x, y, **{**self.point_plot_params, **kwargs})
         if self.plot_lines:
+            #p = np.array([x, y]).T.reshape(-1, 1, 2)
+            #segs = np.concatenate([p[:-1], p[1:]], axis=1)
+            #lcol = LineCollection(segs, **{**self.line_plot_params, **kwargs})
+
+            #self.axes.add_collection(lcol)
+            #self._line_artists[curve_idx] = lcol
+
             self._line_artists[curve_idx] = self.axes.plot(
                 x, y, **{**self.line_plot_params, **kwargs})[0]
         if self.plot_brush_stroke:
+            N_POINTS = 60
             interp_x = []
             interp_y = []
+
             for i in range(1, len(x)):
                 f = interp1d([x[i-1], x[i]],
                              [y[i-1], y[i]])
-                xnew = np.linspace(x[i-1], x[i], 60)
+                xnew = np.linspace(x[i-1], x[i], N_POINTS)
                 ynew = f(xnew)
 
                 interp_x.extend(xnew)
                 interp_y.extend(ynew)
 
-            if self.opacity_by_timestep:
-                alpha = np.linspace(0.5, 0.01, 2 * len(interp_x) / 3)
-                alpha = np.concatenate([alpha, [0.01] * (len(interp_x) - len(alpha))])
+                ap = interp1d([x[i-1], x[i]],
+                              [alpha[i-1], alpha[i]])
+                alpha_new = ap(xnew)
 
-                letter_to_color = {
-                    'r': (1, 0, 0, 1),
-                    'g': (0, 1, 0, 1),
-                    'b': (0, 0, 1, 1),
-                    'm': (1, 0, 1, 1),
-                    'c': (0, 1, 1, 1),
-                    'y': (1, 1, 0, 1),
-                    'b': (0, 0, 0, 1),
-                }
-            
-                color = kwargs['color'] if 'color' in kwargs else 'blue'
-                color = letter_to_color[color] if isinstance(color, str) else color
-                rgba_color = [color[0:3] + (a,) for a in alpha]
+            if self.opacity_by_timestep:
+#                alpha = np.linspace(0.5, 0.01, 2 * len(interp_x) / 3)
+#                alpha = np.concatenate([alpha, [0.01] * (len(interp_x) - len(alpha))])
+
+                rgba_color = [color[0:3] + (a,) for a in alpha_new]
                 kwargs['color'] = rgba_color
 
-            lwidths = np.linspace(self._brush_size_lims[1] * 5,
-                                  self._brush_size_lims[0],
-                                  len(interp_x))
+            glyph_sizes = np.linspace(self._brush_size_lims[1] * 5,
+                                      self._brush_size_lims[0],
+                                      len(interp_x))
+
             c = self.axes.scatter(interp_x, interp_y,
-                                  s=lwidths, **kwargs)
+                                  s=glyph_sizes, **kwargs)
             self._brush_stroke_artists[curve_idx] = c
 
     def _update_projected_data(self):
@@ -1135,7 +1206,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
 
 def main():
     from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
-                                 QPushButton, QVBoxLayout, QHBoxLayout)
+                                 QPushButton, QVBoxLayout, QHBoxLayout,
+                                 QComboBox)
     import sys
     """
     Simple feature test function for the TimeLapseLAMPChart class.
@@ -1179,6 +1251,18 @@ def main():
             reset_button = QPushButton('Reset view', self)
             reset_button.clicked.connect(self.reset_plot)
 
+            opacity_map_combo = QComboBox(self)
+            opacity_map_combo.currentIndexChanged[str].connect(
+                self.set_opacity_map_type)
+            for k in ['constant', 'linear_increasing', 'linear_decreasing', 'variance']:
+                opacity_map_combo.addItem(k)
+
+            glyph_size_combo = QComboBox(self)
+            glyph_size_combo.currentIndexChanged.connect(
+                self.set_glyph_size_type)
+            for k in ['constant', 'linear_increasing', 'linear_decreasing', 'variance']:
+                glyph_size_combo.addItem(k)
+
             self.main_widget = QWidget(self)
             l = QHBoxLayout(self.main_widget)
             l.addWidget(self.lamp)
@@ -1190,6 +1274,8 @@ def main():
             button_layout.addWidget(p90_button)
             button_layout.addWidget(p50_button)
             button_layout.addWidget(p10_button)
+            button_layout.addWidget(opacity_map_combo)
+            button_layout.addWidget(glyph_size_combo)
             button_layout.addWidget(rand_data)
             button_layout.addWidget(reset_button)
 
@@ -1206,6 +1292,12 @@ def main():
 
         def switch_brush_stroke_state(self):
             self.lamp.set_plot_brush_stroke(not self.lamp.plot_brush_stroke)
+
+        def set_opacity_map_type(self, text):
+            self.lamp.set_opacity_map_type(text)
+
+        def set_glyph_size_type(self, text):
+            print(text)
 
         def update_data(self):
             curves = np.random.normal(size=(10, 50))

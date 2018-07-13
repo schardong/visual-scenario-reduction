@@ -8,6 +8,7 @@ Application main window plus tests.
 import os
 import sys
 
+from collections import OrderedDict
 from PyQt5.QtCore import QDir, Qt, QSize
 from PyQt5.QtGui import QIntValidator, QPixmap
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
@@ -45,21 +46,21 @@ class MainWindow(QMainWindow):
     """
     WELL_TYPES = ['P', 'I']
 
-    FANCHART_COLOR_OPTIONS_MAPPING = {
+    FANCHART_COLOR_OPTIONS_MAPPING = OrderedDict({
         'Grayscale': 'gray_r',
         'Shades of Blue': 'Blues',
         'Shades of Red': 'Reds',
         'Heat': 'hot_r'
-    }
+    })
 
-    FANCHART_OPTIONS_ORDERING = [
-        'Grayscale',
-        'Shades of Blue',
-        'Shades of Red',
-        'Heat',
-    ]
+    #FANCHART_OPTIONS_ORDERING = [
+    #    'Grayscale',
+    #    'Shades of Blue',
+    #    'Shades of Red',
+    #    'Heat',
+    #]
 
-    DATA_COLOR_OPTIONS_MAPPING = {
+    DATA_COLOR_OPTIONS_MAPPING = OrderedDict({
         'Winter': 'winter',
         'Summer': 'summer',
         'Topological': 'gist_earth',
@@ -67,17 +68,24 @@ class MainWindow(QMainWindow):
         'Gist Stern': 'gist_stern',
         'Terrain': 'terrain',
         'Blue to Magenta': 'cool',
-    }
+    })
 
-    DATA_OPTIONS_ORDERING = [
-        'Topological',
-        'Ocean',
-        'Terrain',
-        'Blue to Magenta',
-        'Gist Stern',
-        'Winter',
-        'Summer',
-    ]
+    #DATA_OPTIONS_ORDERING = [
+    #    'Topological',
+    #    'Ocean',
+    #    'Terrain',
+    #    'Blue to Magenta',
+    #    'Gist Stern',
+    #    'Winter',
+    #    'Summer',
+    #]
+
+    TLCHART_OPACITY_OPTIONS_MAPPING = OrderedDict({
+        'Constant': 'constant',
+        'Linear-Increasing': 'linear_increasing',
+        'Linear-Decreasing': 'linear_decreasing',
+        'Variance': 'variance',
+    })
 
     def __init__(self, width, height):
         super(MainWindow, self).__init__()
@@ -107,7 +115,7 @@ class MainWindow(QMainWindow):
         self._chk_show_p50 = None
         self._chk_show_p90 = None
         self._chk_plot_brush_strokes = None
-        self._chk_opacity_by_ts = None
+        self._combo_opacity_map = None
         self._chk_show_p10_lamp = None
         self._chk_show_p50_lamp = None
         self._chk_show_p90_lamp = None
@@ -430,6 +438,13 @@ class MainWindow(QMainWindow):
 
         self._plt_widget.set_timestep_range(start_ts, value)
 
+    def set_opacity_map_type_tlchart(self, opt):
+        """
+        DOCSTRING GOES HERE
+        """
+        self._plt_widget.set_opacity_map_type_tlchart(
+            self.TLCHART_OPACITY_OPTIONS_MAPPING[opt])
+
     def update_data(self, **kwargs):
         """
         Gets the newly loaded data from the Time series ensemble and passes
@@ -587,7 +602,7 @@ class MainWindow(QMainWindow):
         self._combo_data_colormap = QComboBox(self)
         self._combo_data_colormap.currentIndexChanged.connect(
             self.data_colormap_changed)
-        for k in self.DATA_OPTIONS_ORDERING:
+        for k in self.DATA_COLOR_OPTIONS_MAPPING:
             self._combo_data_colormap.addItem(k)
 
         save_plots_btn = QPushButton('Save plots to PDF', self)
@@ -670,10 +685,12 @@ class MainWindow(QMainWindow):
             self._plt_widget.get_plot_brush_strokes_tlchart())
         self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
 
-        self._chk_opacity_by_ts = QCheckBox('Opacity by timestep', self._main_widget)
-        self._chk_opacity_by_ts.setChecked(self._plt_widget.get_opacity_by_timestep_tlchart())
-        self._chk_opacity_by_ts.clicked.connect(
-            self._plt_widget.set_opacity_by_timestep_tlchart)
+        self._combo_opacity_map = QComboBox(self._main_widget)
+        #self._combo_opacity_map.setChecked(self._plt_widget.get_opacity_by_timestep_tlchart())
+        for k in self.TLCHART_OPACITY_OPTIONS_MAPPING:
+            self._combo_opacity_map.addItem(k)
+        self._combo_opacity_map.currentIndexChanged[str].connect(
+            self.set_opacity_map_type_tlchart)
 
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
@@ -692,7 +709,7 @@ class MainWindow(QMainWindow):
         glyph_layout.addWidget(self._chk_plot_points)
         glyph_layout.addWidget(self._chk_plot_lines)
         glyph_layout.addWidget(self._chk_plot_brush_strokes)
-        glyph_layout.addWidget(self._chk_opacity_by_ts)
+        glyph_layout.addWidget(self._combo_opacity_map)
 
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)
@@ -749,7 +766,7 @@ class MainWindow(QMainWindow):
 
         color_label = QLabel('Color pallete: ', box)
         self._combo_fan_color_pallete = QComboBox(box)
-        for k in self.FANCHART_OPTIONS_ORDERING:
+        for k in self.FANCHART_COLOR_OPTIONS_MAPPING:
             self._combo_fan_color_pallete.addItem(k)
         self._combo_fan_color_pallete.setCurrentText(
             self._plt_widget.get_fan_color_pallete())
