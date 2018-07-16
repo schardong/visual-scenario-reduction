@@ -11,7 +11,7 @@ import scipy.spatial.distance
 import sklearn.manifold
 from enum import Enum
 from matplotlib.collections import LineCollection
-from matplotlib.colors import to_rgba
+from matplotlib.colors import to_rgba, rgb_to_hsv, hsv_to_rgb
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -77,7 +77,7 @@ def _plot_timelapse_lamp(ax, point_list, plot_points=True,
     return (scatter_artists, plot_artists)
 
 
-class OpacityMapType(Enum):
+class SaturationMapType(Enum):
     CONSTANT = 'constant'
     LINEAR_INC = 'linear_increasing'
     LINEAR_DEC = 'linear_decreasing'
@@ -166,7 +166,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._cmap_name = 'rainbow'
         self._plot_params = kwargs
         self._brush_size_lims = (5, 35)
-        self._opacity_map = OpacityMapType.CONSTANT
+        self._saturation_map = SaturationMapType.CONSTANT
         self._glyph_size_map = GlyphSizeMap.CONSTANT
 
         if 'picker' not in self._plot_params:
@@ -358,11 +358,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         return self._plot_line_params
 
     @property
-    def opacity_map_type(self):
+    def saturation_map_type(self):
         """
-        Returns the type of opacity map to use (constant, linear or variance based).
+        Returns the type of saturation map to use (constant, linear or variance based).
         """
-        return self._opacity_map
+        return self._saturation_map
 
     @property
     def glyph_size_type(self):
@@ -705,19 +705,19 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         self._plot_point_params = kwargs
 
-    def set_opacity_map_type(self, ommap, update_chart=True):
+    def set_saturation_map_type(self, satmap, update_chart=True):
         """
-        Sets the type of opacity map to use when plotting the series.
+        Sets the type of saturation map to use when plotting the series.
 
         Parameters
         ----------
-        state: OpacityMapType or str
-            Either the Enum OpacityMapType or a string with the map type.
+        state: SaturationMapType or str
+            Either the Enum SaturationMapType or a string with the map type.
         update_chart: boolean
             Switch to indicate if the plot should be updated. Default value
             is True.
         """
-        self._opacity_map = ommap if isinstance(ommap, OpacityMapType) else OpacityMapType(ommap)
+        self._saturation_map = satmap if isinstance(satmap, SaturationMapType) else SaturationMapType(satmap)
         if update_chart:
             self.update_chart(plot_glyph=True)
 
@@ -1003,24 +1003,26 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             colormap = cm.get_cmap(name=self.colormap_name,
                                    lut=len(self.curves))
             for i in nref_idx:
-                # Handling the alpha mapping.
-                #alpha = []
-                #if self.opacity_map_type == OpacityMapType.CONSTANT:
-                #    alpha = [1.0] * self.curves.shape[0]
-                #elif self.opacity_map_type == OpacityMapType.LINEAR_INC:
-                #    alpha = np.linspace(0.01, 0.95, self.curves.shape[0])
-                #elif self.opacity_map_type == OpacityMapType.LINEAR_DEC:
-                #    alpha = np.linspace(0.95, 0.01, self.curves.shape[0])
-                #elif self.opacity_map_type == OpacityMapType.VARIANCE:
-                #    alpha = self._ts_variance
-                #else:
-                #    raise ValueError('Invalid opacity map type defined.')
+                # Handling the saturation mapping.
+                sat = []
+                if self.saturation_map_type == SaturationMapType.CONSTANT:
+                    sat = [1.0] * self.curves.shape[1]
+                elif self.saturation_map_type == SaturationMapType.LINEAR_INC:
+                    sat = np.linspace(0.01, 0.95, self.curves.shape[1])
+                elif self.saturation_map_type == SaturationMapType.LINEAR_DEC:
+                    sat = np.linspace(0.95, 0.01, self.curves.shape[1])
+                elif self.saturation_map_type == SaturationMapType.VARIANCE:
+                    sat = 1.0 - self._ts_variance
+                else:
+                    raise ValueError('Invalid saturation map type defined.')
 
-                #color = colormap(i)
-                #rgba_color = [color[0:3] + (a,) for a in alpha]
-                #self._plot_params['color'] = rgba_color
+                r, g, b, a = colormap(i)
+                h, _, v = rgb_to_hsv((r, g, b))
+                hsv_color = [(h, s1, v) for s1 in sat]
+                rgba_color = hsv_to_rgb(hsv_color)
 
                 #self._plot_params['color'] = colormap(i)
+                self._plot_params['color'] = rgba_color
                 self._plot_path_projection(self.projected_curves[i], i,
                                            **self._plot_params)
 
@@ -1106,19 +1108,26 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self._point_artists[curve_idx] = self.axes.scatter(
                 x, y, **{**self.point_plot_params, **kwargs})
         if self.plot_lines:
-            #p = np.array([x, y]).T.reshape(-1, 1, 2)
-            #segs = np.concatenate([p[:-1], p[1:]], axis=1)
-            #lcol = LineCollection(segs, **{**self.line_plot_params, **kwargs})
+            p = np.array([x, y]).T.reshape(-1, 1, 2)
+            segs = np.concatenate([p[:-1], p[1:]], axis=1)
+            if 'marker' in kwargs:
+                del kwargs['marker']
+            lcol = LineCollection(segs, **{**self.line_plot_params, **kwargs})
 
-            #self.axes.add_collection(lcol)
-            #self._line_artists[curve_idx] = lcol
+            self.axes.add_collection(lcol)
+            self._line_artists[curve_idx] = lcol
 
-            self._line_artists[curve_idx] = self.axes.plot(
-                x, y, **{**self.line_plot_params, **kwargs})[0]
+            #self._line_artists[curve_idx] = self.axes.plot(
+            #    x, y, **{**self.line_plot_params, **kwargs})[0]
         if self.plot_brush_stroke:
-            N_POINTS = 60
+            if curve_idx in self._reference_idx:
+                return
+            N_POINTS = 50
             interp_x = []
             interp_y = []
+            print(kwargs['color'].shape)
+            hsv = rgb_to_hsv(kwargs['color'])
+            sat = hsv[:, 1]
 
             for i in range(1, len(x)):
                 f = interp1d([x[i-1], x[i]],
@@ -1129,16 +1138,14 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 interp_x.extend(xnew)
                 interp_y.extend(ynew)
 
-                ap = interp1d([x[i-1], x[i]],
-                              [alpha[i-1], alpha[i]])
-                alpha_new = ap(xnew)
+                sp = interp1d([x[i-1], x[i]],
+                              [sat[i-1], sat[i]])
+                saturation_new = sp(xnew)
 
-            if self.opacity_by_timestep:
-#                alpha = np.linspace(0.5, 0.01, 2 * len(interp_x) / 3)
-#                alpha = np.concatenate([alpha, [0.01] * (len(interp_x) - len(alpha))])
+            print(saturation_new)
 
-                rgba_color = [color[0:3] + (a,) for a in alpha_new]
-                kwargs['color'] = rgba_color
+#                rgba_color = [color[0:3] + (a,) for a in alpha_new]
+#                kwargs['color'] = rgba_color
 
             glyph_sizes = np.linspace(self._brush_size_lims[1] * 5,
                                       self._brush_size_lims[0],
@@ -1251,11 +1258,11 @@ def main():
             reset_button = QPushButton('Reset view', self)
             reset_button.clicked.connect(self.reset_plot)
 
-            opacity_map_combo = QComboBox(self)
-            opacity_map_combo.currentIndexChanged[str].connect(
-                self.set_opacity_map_type)
+            saturation_map_combo = QComboBox(self)
+            saturation_map_combo.currentIndexChanged[str].connect(
+                self.set_saturation_map_type)
             for k in ['constant', 'linear_increasing', 'linear_decreasing', 'variance']:
-                opacity_map_combo.addItem(k)
+                saturation_map_combo.addItem(k)
 
             glyph_size_combo = QComboBox(self)
             glyph_size_combo.currentIndexChanged.connect(
@@ -1274,7 +1281,7 @@ def main():
             button_layout.addWidget(p90_button)
             button_layout.addWidget(p50_button)
             button_layout.addWidget(p10_button)
-            button_layout.addWidget(opacity_map_combo)
+            button_layout.addWidget(saturation_map_combo)
             button_layout.addWidget(glyph_size_combo)
             button_layout.addWidget(rand_data)
             button_layout.addWidget(reset_button)
@@ -1293,8 +1300,9 @@ def main():
         def switch_brush_stroke_state(self):
             self.lamp.set_plot_brush_stroke(not self.lamp.plot_brush_stroke)
 
-        def set_opacity_map_type(self, text):
-            self.lamp.set_opacity_map_type(text)
+        def set_saturation_map_type(self, text):
+            print(text)
+            self.lamp.set_saturation_map_type(text)
 
         def set_glyph_size_type(self, text):
             print(text)

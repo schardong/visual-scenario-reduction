@@ -415,26 +415,26 @@ class PlotWidget(QWidget):
         """
         return self._child_plots['tl'].plot_brush_stroke
 
-    def set_opacity_map_type_tlchart(self, opt):
+    def set_saturation_map_type_tlchart(self, opt):
         """
-        Sets how the opacity should vary according to the timestep.
+        Sets how the saturation should vary according to the timestep.
 
         Parameters
         ----------
         opt: str
             DOCSTRING GOES HERE
         """
-        self._child_plots['tl'].set_opacity_map_type(opt)
+        self._child_plots['tl'].set_saturation_map_type(opt)
 
-    def get_opacity_by_timestep_tlchart(self):
+    def get_saturation_by_timestep_tlchart(self):
         """
-        Returns if the opacity varies according to the timestep or not.
+        Returns if the saturation varies according to the timestep or not.
 
         Returns
         -------
-        True if the opacity varies according to the timestep, False otherwise.
+        True if the saturation varies according to the timestep, False otherwise.
         """
-        return self._child_plots['tl'].opacity_by_timestep
+        return self._child_plots['tl'].saturation_by_timestep
 
     def set_log_scale_distchart(self, log_scale):
         """

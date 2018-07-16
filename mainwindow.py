@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
     #    'Summer',
     #]
 
-    TLCHART_OPACITY_OPTIONS_MAPPING = OrderedDict({
+    TLCHART_SATURATION_OPTIONS_MAPPING = OrderedDict({
         'Constant': 'constant',
         'Linear-Increasing': 'linear_increasing',
         'Linear-Decreasing': 'linear_decreasing',
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
         self._chk_show_p50 = None
         self._chk_show_p90 = None
         self._chk_plot_brush_strokes = None
-        self._combo_opacity_map = None
+        self._combo_saturation_map = None
         self._chk_show_p10_lamp = None
         self._chk_show_p50_lamp = None
         self._chk_show_p90_lamp = None
@@ -438,12 +438,12 @@ class MainWindow(QMainWindow):
 
         self._plt_widget.set_timestep_range(start_ts, value)
 
-    def set_opacity_map_type_tlchart(self, opt):
+    def set_saturation_map_type_tlchart(self, opt):
         """
         DOCSTRING GOES HERE
         """
-        self._plt_widget.set_opacity_map_type_tlchart(
-            self.TLCHART_OPACITY_OPTIONS_MAPPING[opt])
+        self._plt_widget.set_saturation_map_type_tlchart(
+            self.TLCHART_SATURATION_OPTIONS_MAPPING[opt])
 
     def update_data(self, **kwargs):
         """
@@ -685,12 +685,12 @@ class MainWindow(QMainWindow):
             self._plt_widget.get_plot_brush_strokes_tlchart())
         self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
 
-        self._combo_opacity_map = QComboBox(self._main_widget)
-        #self._combo_opacity_map.setChecked(self._plt_widget.get_opacity_by_timestep_tlchart())
-        for k in self.TLCHART_OPACITY_OPTIONS_MAPPING:
-            self._combo_opacity_map.addItem(k)
-        self._combo_opacity_map.currentIndexChanged[str].connect(
-            self.set_opacity_map_type_tlchart)
+        self._combo_saturation_map = QComboBox(self._main_widget)
+        #self._combo_saturation_map.setChecked(self._plt_widget.get_saturation_by_timestep_tlchart())
+        for k in self.TLCHART_SATURATION_OPTIONS_MAPPING:
+            self._combo_saturation_map.addItem(k)
+        self._combo_saturation_map.currentIndexChanged[str].connect(
+            self.set_saturation_map_type_tlchart)
 
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
@@ -709,7 +709,7 @@ class MainWindow(QMainWindow):
         glyph_layout.addWidget(self._chk_plot_points)
         glyph_layout.addWidget(self._chk_plot_lines)
         glyph_layout.addWidget(self._chk_plot_brush_strokes)
-        glyph_layout.addWidget(self._combo_opacity_map)
+        glyph_layout.addWidget(self._combo_saturation_map)
 
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)
