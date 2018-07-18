@@ -1017,8 +1017,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                     raise ValueError('Invalid saturation map type defined.')
 
                 r, g, b, a = colormap(i)
-                h, _, v = rgb_to_hsv((r, g, b))
-                hsv_color = [(h, s1, v) for s1 in sat]
+                h, s, v = rgb_to_hsv((r, g, b))
+                hsv_color = [(h, s*s1, v) for s1 in sat]
                 rgba_color = hsv_to_rgb(hsv_color)
 
                 #self._plot_params['color'] = colormap(i)
@@ -1110,8 +1110,10 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if self.plot_lines:
             p = np.array([x, y]).T.reshape(-1, 1, 2)
             segs = np.concatenate([p[:-1], p[1:]], axis=1)
+            print('-------------------------------------------------')
             if 'marker' in kwargs:
                 del kwargs['marker']
+            print(self.line_plot_params, kwargs.keys())
             lcol = LineCollection(segs, **{**self.line_plot_params, **kwargs})
 
             self.axes.add_collection(lcol)
@@ -1239,6 +1241,7 @@ def main():
             self.setGeometry(self.left, self.top, self.width, self.height)
 
             self.lamp = TimeLapseChart(parent=self, canvas_name='lamp1')
+            self.lamp.set_colormap('gist_stern', update_chart=False)
             self.lamp.set_plot_title('Time Lapse projection plot')
 
             points_button = QPushButton('Plot points', self)
@@ -1308,7 +1311,7 @@ def main():
             print(text)
 
         def update_data(self):
-            curves = np.random.normal(size=(10, 50))
+            curves = np.random.normal(size=(30, 50))
             self.curves = np.vstack(
                 (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
 
