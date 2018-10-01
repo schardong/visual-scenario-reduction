@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         'Grayscale': 'gray_r',
         'Shades of Blue': 'Blues',
         'Shades of Red': 'Reds',
-        'Heat': 'hot_r'
+        'Heat': 'hot_r',
     })
 
     #FANCHART_OPTIONS_ORDERING = [
@@ -68,6 +68,9 @@ class MainWindow(QMainWindow):
         'Gist Stern': 'gist_stern',
         'Terrain': 'terrain',
         'Blue to Magenta': 'cool',
+        'Plasma': 'plasma',
+        'GNUplot': 'gnuplot',
+        'GNUplot2': 'gnuplot2',
     })
 
     #DATA_OPTIONS_ORDERING = [
@@ -79,6 +82,11 @@ class MainWindow(QMainWindow):
     #    'Winter',
     #    'Summer',
     #]
+
+    TLCHART_GLYPH_SIZE_OPTIONS_MAPPING = OrderedDict({
+        'Linear-Increasing': 'linear_increasing',
+        'Linear-Decreasing': 'linear_decreasing',
+    })
 
     TLCHART_SATURATION_OPTIONS_MAPPING = OrderedDict({
         'Constant': 'constant',
@@ -116,6 +124,7 @@ class MainWindow(QMainWindow):
         self._chk_show_p90 = None
         self._chk_plot_brush_strokes = None
         self._combo_saturation_map = None
+        self._combo_glyph_size = None
         self._chk_show_p10_lamp = None
         self._chk_show_p50_lamp = None
         self._chk_show_p90_lamp = None
@@ -335,6 +344,7 @@ class MainWindow(QMainWindow):
         checked = (state == Qt.Checked)
         self._plt_widget.set_plot_brush_strokes_tlchart(checked)
 
+        self._combo_glyph_size.setEnabled(checked)
         if checked:
             self._chk_plot_lines.setChecked(False)
             self._chk_plot_points.setChecked(False)
@@ -444,6 +454,10 @@ class MainWindow(QMainWindow):
         """
         self._plt_widget.set_saturation_map_type_tlchart(
             self.TLCHART_SATURATION_OPTIONS_MAPPING[opt])
+
+    def set_glyph_size_type_tlchart(self, opt):
+        self._plt_widget.set_glyph_size_type_tlchart(
+            self.TLCHART_GLYPH_SIZE_OPTIONS_MAPPING[opt])
 
     def update_data(self, **kwargs):
         """
@@ -670,31 +684,37 @@ class MainWindow(QMainWindow):
         box = QGroupBox('Time-lapsed LAMP Chart', self)
 
         self._chk_plot_points = QCheckBox('Show points', self._main_widget)
-        self._chk_plot_points.stateChanged.connect(
-            self.set_plot_points_tlchart)
         self._chk_plot_points.setChecked(
             self._plt_widget.get_plot_points_tlchart())
 
         self._chk_plot_lines = QCheckBox('Show lines', self._main_widget)
         self._chk_plot_lines.setChecked(
             self._plt_widget.get_plot_lines_tlchart())
-        self._chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
 
-        self._chk_plot_brush_strokes = QCheckBox('Show brush strokes', self._main_widget)
+        self._chk_plot_brush_strokes = QCheckBox('Show brush strokes',
+                                                 self._main_widget)
         self._chk_plot_brush_strokes.setChecked(
             self._plt_widget.get_plot_brush_strokes_tlchart())
-        self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
 
         self._combo_saturation_map = QComboBox(self._main_widget)
-        #self._combo_saturation_map.setChecked(self._plt_widget.get_saturation_by_timestep_tlchart())
         for k in self.TLCHART_SATURATION_OPTIONS_MAPPING:
             self._combo_saturation_map.addItem(k)
         self._combo_saturation_map.currentIndexChanged[str].connect(
             self.set_saturation_map_type_tlchart)
 
+        self._combo_glyph_size = QComboBox(self._main_widget)
+        for k in self.TLCHART_GLYPH_SIZE_OPTIONS_MAPPING:
+            self._combo_glyph_size.addItem(k)
+        self._combo_glyph_size.currentIndexChanged[str].connect(
+            self.set_glyph_size_type_tlchart)
+        self._combo_glyph_size.setEnabled(not self._plt_widget.get_plot_brush_strokes_tlchart())
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
         # chk_ts_highlight.stateChanged.connect(self.set_ts_highlight_tlchart)
+
+        self._chk_plot_points.stateChanged.connect(self.set_plot_points_tlchart)
+        self._chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
+        self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
 
         self._chk_show_p10_lamp = QCheckBox('Show P10', box)
         self._chk_show_p10_lamp.clicked.connect(self._plt_widget.lamp_show_p10)
@@ -710,6 +730,7 @@ class MainWindow(QMainWindow):
         glyph_layout.addWidget(self._chk_plot_lines)
         glyph_layout.addWidget(self._chk_plot_brush_strokes)
         glyph_layout.addWidget(self._combo_saturation_map)
+        glyph_layout.addWidget(self._combo_glyph_size)
 
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)

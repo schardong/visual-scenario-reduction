@@ -549,7 +549,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             self.axes.cla()
             self.axes.set_title(self.plot_title)
             self.axes.set_xlabel('Timestep')
-            self.axes.set_ylabel('Value')
+            self.axes.set_ylabel('Production')
             xmin, xmax = self.time_range
             self.axes.set_xlim([xmin, xmax - 1])
 
@@ -565,7 +565,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
                          x=tr,
                          y=self.curves[:, tr],
                          colormap=cm.get_cmap(
-                             name=self.fan_colormap_name, lut=8),
+                             name=self.fan_colormap_name, lut=12),
                          q=self.percentiles,
                          **self._plot_params)
 

@@ -85,10 +85,8 @@ class SaturationMapType(Enum):
 
 
 class GlyphSizeMap(Enum):
-    CONSTANT = 'constant'
     LINEAR_INC = 'linear_increasing'
     LINEAR_DEC = 'linear_decreasing'
-    VARIANCE = 'variance'
 
 
 class TimeLapseChart(FigureCanvas, BrushableCanvas):
@@ -165,9 +163,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._reference_parameters = {}
         self._cmap_name = 'rainbow'
         self._plot_params = kwargs
-        self._brush_size_lims = (5, 35)
+        self._brush_size_lims = (2, 35)
         self._saturation_map = SaturationMapType.CONSTANT
-        self._glyph_size_map = GlyphSizeMap.CONSTANT
+        self._glyph_size_map = GlyphSizeMap.LINEAR_INC
 
         if 'picker' not in self._plot_params:
             self._plot_params['picker'] = 3
@@ -1035,7 +1033,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                     self._point_artists[i].set_visible(False)
                 if self._line_artists and self._line_artists[i]:
                     self._line_artists[i].set_visible(False)
-                if self._brush_stroke_artists and self._brush_stroke_artists[i]:
+                if self._brush_stroke_artists and i < len(self._brush_stroke_artists) and self._brush_stroke_artists[i]:
                     self._brush_stroke_artists[i].set_visible(False)
 
             self.axes.set_xticklabels([])
@@ -1057,10 +1055,10 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             'pick_event', self.cb_mouse_pick)
         self._cb_mouse_move_id = fig.canvas.mpl_connect(
             'motion_notify_event', self.cb_mouse_motion)
-        self._cb_axes_leave_id = fig.canvas.mpl_connect(
-            'axes_leave_event', self.cb_axes_leave)
-        self._cb_fig_leave_id = fig.canvas.mpl_connect(
-            'figure_leave_event', self.cb_axes_leave)
+        #self._cb_axes_leave_id = fig.canvas.mpl_connect(
+        #    'axes_leave_event', self.cb_axes_leave)
+        #self._cb_fig_leave_id = fig.canvas.mpl_connect(
+        #    'figure_leave_event', self.cb_axes_leave)
 
     def _disconnect_cb(self):
         """
@@ -1127,9 +1125,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             N_POINTS = 50
             interp_x = []
             interp_y = []
-            print(kwargs['color'].shape)
-            hsv = rgb_to_hsv(kwargs['color'])
-            sat = hsv[:, 1]
+            # print(kwargs['color'].shape)
+            # hsv = rgb_to_hsv(kwargs['color'])
+            # sat = hsv[:, 1]
 
             for i in range(1, len(x)):
                 f = interp1d([x[i-1], x[i]],
@@ -1140,18 +1138,18 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 interp_x.extend(xnew)
                 interp_y.extend(ynew)
 
-                sp = interp1d([x[i-1], x[i]],
-                              [sat[i-1], sat[i]])
-                saturation_new = sp(xnew)
+                # sp = interp1d([x[i-1], x[i]],
+                #               [sat[i-1], sat[i]])
+                # saturation_new = sp(xnew)
 
-            print(saturation_new)
-
-#                rgba_color = [color[0:3] + (a,) for a in alpha_new]
-#                kwargs['color'] = rgba_color
-
-            glyph_sizes = np.linspace(self._brush_size_lims[1] * 5,
-                                      self._brush_size_lims[0],
-                                      len(interp_x))
+            if self.glyph_size_type == GlyphSizeMap.LINEAR_INC:
+                glyph_sizes = np.linspace(self._brush_size_lims[0] * 2,
+                                          self._brush_size_lims[1],
+                                          len(interp_x))
+            elif self.glyph_size_type == GlyphSizeMap.LINEAR_DEC:
+                glyph_sizes = np.linspace(self._brush_size_lims[1] * 2,
+                                          self._brush_size_lims[0],
+                                          len(interp_x))
 
             c = self.axes.scatter(interp_x, interp_y,
                                   s=glyph_sizes, **kwargs)

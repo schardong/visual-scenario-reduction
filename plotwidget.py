@@ -436,6 +436,12 @@ class PlotWidget(QWidget):
         """
         return self._child_plots['tl'].saturation_by_timestep
 
+    def set_glyph_size_type_tlchart(self, opt):
+        self._child_plots['tl'].set_glyph_size_type(opt)
+
+    def get_glyph_size_type_tlchart(self):
+        return self._child_plots['tl'].glyph_size_type
+                          
     def set_log_scale_distchart(self, log_scale):
         """
         Sets wheter the distances should be converted to log_10 scale.
