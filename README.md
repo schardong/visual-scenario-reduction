@@ -10,7 +10,23 @@ This is the official implementation of "Visual interactive support for selecting
 
 ## Getting started
 
+**TL-DR**: If you just want to run the code, follow the steps below (assuming a UNIX system). For more details, jump to `Setup and sample run` section.
+
+```{sh}
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python mainwindow.py
+```
+
 ### Prerequisites
+1. [Python venv](https://docs.python.org/3/library/venv.html)
+2. [Git](https://git-scm.com/download)
+3. [Qt 5](https://doc.qt.io/qt-5/)
+
+### Code organization
+
+### Setup and sample run
 
 ## Contributing
 Any contribution is welcome. If you spot an error or have questions, open issues and we will answer as soon as possible.
