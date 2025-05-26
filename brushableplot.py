@@ -13,7 +13,7 @@ class BrushableCanvas:
     brushing & linking of its data instances.
     '''
 
-    def __init__(self, canvas_name, parent=None):
+    def __init__(self, canvas_name="", parent=None):
         '''
         BrushableCanvas default constructor.
 

@@ -43,7 +43,7 @@ class Field:
         Returns the name of this field.
         '''
         return self._name
-    
+
     def get_well_data(self, well_prop=None, well_type=None, well_names=None):
         '''
         Returns the well data stored in this object. Optionally, may return
@@ -109,10 +109,10 @@ class Field:
         prop_dict = self.get_well_data(well_prop=well_prop, well_type=well_type)
         group_dict = {}
         for prop_name, prop_data in prop_dict.items():
-            group_data = np.zeros(shape=(len(prop_data), 1), dtype=np.float)
+            group_data = np.zeros(shape=(len(prop_data), 1), dtype=float)
             group_data = np.sum(prop_data, axis=1)
             group_dict[prop_name] = group_data
-            
+
         return group_dict
 
     def load_field(self, base_path, prop_list, fieldname):
@@ -123,7 +123,7 @@ class Field:
         if the filename is empty or the specified file does not exist.
 
         Arguments:
-        base_path -- Root of the data directory. 
+        base_path -- Root of the data directory.
         prop_list -- Single property or list of properties to load. Must be
         folders under base_path.
         fieldname -- The name of the field to load inside each base_path/prop
@@ -192,7 +192,7 @@ def test_Field():
         contents = fin.readlines()
         names, types = contents[0].strip().split(','), contents[1].strip().split(',')
         well_types = dict(zip(names, types))
-    
+
     f = Field()
     print(len(f))
 

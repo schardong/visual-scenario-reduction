@@ -3,8 +3,7 @@
 
 import numpy as np
 import matplotlib
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import cm
 from PyQt5.QtWidgets import QSizePolicy
@@ -13,8 +12,14 @@ from brushableplot import BrushableCanvas
 from zoompanhandler import ZoomPanHandler
 
 
-def fanchart(ax, x, y, q=np.arange(0, 110, 10),
-             colormap=cm.get_cmap(name='Reds', lut=8), **kwargs):
+def fanchart(
+    ax,
+    x,
+    y,
+    q=np.arange(0, 110, 10),
+    colormap=cm.get_cmap(name="Reds", lut=8),
+    **kwargs
+):
     """
     A helper function to plot a fanchart.
 
@@ -40,7 +45,7 @@ def fanchart(ax, x, y, q=np.arange(0, 110, 10),
         List of artists added to the axes.
     """
     if len(x) != y.shape[1]:
-        fmt = 'Incompatible data dimensions x={}, y=({}, {})'
+        fmt = "Incompatible data dimensions x={}, y=({}, {})"
         raise ValueError(fmt.format(len(x), y.shape[0], y.shape[1]))
     if not isinstance(x, list):
         x = list(x)
@@ -78,8 +83,16 @@ class Fanchart(FigureCanvas, BrushableCanvas):
     compare it to the data distribution.
     """
 
-    def __init__(self, canvas_name, parent=None, width=5, height=5, dpi=100,
-                 q=np.arange(0, 110, 10), **kwargs):
+    def __init__(
+        self,
+        canvas_name,
+        parent=None,
+        width=5,
+        height=5,
+        dpi=100,
+        q=np.arange(0, 110, 10),
+        **kwargs
+    ):
         """
         Parameters
         ----------
@@ -106,9 +119,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self._axes = fig.add_subplot(1, 1, 1)
         FigureCanvas.__init__(self, fig)
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.setParent(parent)
         BrushableCanvas.__init__(self, canvas_name, parent)
@@ -126,8 +137,8 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
         # Plot styles
         self._plot_title = self.base_plot_name()
-        self._cmap_name = 'rainbow'
-        self._fan_cmap_name = 'gray_r'
+        self._cmap_name = "rainbow"
+        self._fan_cmap_name = "gray_r"
         self._curves_colors = {}
         self._reference_parameters = {}
         self._vline = None
@@ -137,8 +148,8 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._time_range = ()
         self._hovered_line = None
         self._plot_params = kwargs
-        if 'linewidth' not in self._plot_params:
-            self._plot_params['linewidth'] = 1.5
+        if "linewidth" not in self._plot_params:
+            self._plot_params["linewidth"] = 1.5
 
     def __del__(self):
         self._axes = None
@@ -191,7 +202,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         """
         Static method that returns the base name of this plot.
         """
-        return 'Fanchart'
+        return "Fanchart"
 
     @property
     def colormap_name(self):
@@ -268,12 +279,12 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         if self.curves is None:
             return
         if ts is not None and (ts < 0 or ts >= self.curves.shape[1]):
-            raise ValueError('Timestep out of range.')
+            raise ValueError("Timestep out of range.")
 
         self._highlighted_ts = ts
         self._vline_props = plotprops
         if not self._vline_props:
-            self._vline_props = {'color': 'b', 'linewidth': 2}
+            self._vline_props = {"color": "b", "linewidth": 2}
         if update_chart:
             self.update_chart(highlighted_timestep=True)
 
@@ -297,15 +308,13 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         self._reference_parameters.clear()
 
         # Reseting the highlighted data
-        self.highlight_data(self._highlighted_data,
-                            erase=True, update_chart=False)
+        self.highlight_data(self._highlighted_data, erase=True, update_chart=False)
 
         if update_chart:
             self.update_chart(data_changed=True)
             self._zphandler.set_base_transforms()
 
-    def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
-                            **kwargs):
+    def set_reference_curve(self, curve_idx, is_ref, update_chart=True, **kwargs):
         """
         Adds or removes a curve from the reference curves set. Reference curves
         are not included in the picking and will never have their alpha changed
@@ -347,7 +356,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         True if the given index is a reference curve, False otherwise.
         """
         if idx < 0 or idx > self.curves.shape[0]:
-            raise ValueError('Index out of range.')
+            raise ValueError("Index out of range.")
         return idx in self._reference_idx
 
     def set_draw_reference_curve(self, idx, draw):
@@ -363,7 +372,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             True to draw the curve, False to hide it.
         """
         if idx < 0 or idx > self.curves.shape[0]:
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
 
         if idx not in self._reference_idx:
             return
@@ -373,9 +382,9 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         else:
             self._hidden_ref.discard(idx)
 
-#        if self._plotted_lines and self._plotted_lines[idx]:
-#            print(idx, draw)
-#            self._plotted_lines[idx].set_visible(draw)
+        #        if self._plotted_lines and self._plotted_lines[idx]:
+        #            print(idx, draw)
+        #            self._plotted_lines[idx].set_visible(draw)
 
         self.update_chart(redraw_references=True)
 
@@ -384,7 +393,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         Returns wheter the selected curve is hidden or not.
         """
         if idx < 0 or idx > self.curves.shape[0]:
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
         if idx not in self._reference_idx:
             return False
         if self._plotted_lines and self._plotted_lines[idx]:
@@ -407,26 +416,27 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             if self._hovered_line[0] not in self.highlighted_data:
                 self._hovered_line[0].set_visible(False)
             else:
-                self._hovered_line[0].set_linewidth(
-                    self._plot_params['linewidth'])
+                self._hovered_line[0].set_linewidth(self._plot_params["linewidth"])
 
         if not curve_idx or curve_idx not in range(self.curves.shape[0]):
             self.draw()
             return
 
-        color = 'black'
+        color = "black"
         if curve_idx in self._reference_idx:
-            color = self._reference_parameters[curve_idx]['color']
+            color = self._reference_parameters[curve_idx]["color"]
         else:
             color = self._curves_colors[curve_idx]
 
         curr_xlim = self.axes.get_xlim()
         curr_ylim = self.axes.get_ylim()
         tr = range(self.time_range[0], self.time_range[1])
-        self._hovered_line = self.axes.plot(range(self.time_range[0], self.time_range[1]),
-                                            self.curves[curve_idx,
-                                                        tr], color=color,
-                                            linewidth=self._plot_params['linewidth'] * 2)
+        self._hovered_line = self.axes.plot(
+            range(self.time_range[0], self.time_range[1]),
+            self.curves[curve_idx, tr],
+            color=color,
+            linewidth=self._plot_params["linewidth"] * 2,
+        )
 
         self.axes.set_xlim(curr_xlim)
         self.axes.set_ylim(curr_ylim)
@@ -532,7 +542,7 @@ class Fanchart(FigureCanvas, BrushableCanvas):
         tr = range(self.time_range[0], self.time_range[1])
         nref_idx = set(range(self.curves.shape[0])) - self._reference_idx
 
-        if 'selected_data' in kwargs:
+        if "selected_data" in kwargs:
             # First, we clear the lines from the chart.
             for l in self._plotted_lines:
                 if l is not None:
@@ -545,58 +555,59 @@ class Fanchart(FigureCanvas, BrushableCanvas):
             # Finally, we redraw the reference lines.
             self.update_chart(redraw_references=True)
 
-        if 'data_changed' in kwargs:
+        if "data_changed" in kwargs:
             self.axes.cla()
             self.axes.set_title(self.plot_title)
-            self.axes.set_xlabel('Timestep')
-            self.axes.set_ylabel('Production')
+            self.axes.set_xlabel("Timestep")
+            self.axes.set_ylabel("Production")
             xmin, xmax = self.time_range
             self.axes.set_xlim([xmin, xmax - 1])
 
-            lines_colormap = cm.get_cmap(name=self.colormap_name,
-                                         lut=len(self.curves))
-            self._curves_colors = dict((i, lines_colormap(i))
-                                       for i in nref_idx)
+            lines_colormap = cm.get_cmap(name=self.colormap_name, lut=len(self.curves))
+            self._curves_colors = dict((i, lines_colormap(i)) for i in nref_idx)
 
             self._plotted_lines = [None] * self.curves.shape[0]
 
             if self.curves is not None:
-                fanchart(ax=self.axes,
-                         x=tr,
-                         y=self.curves[:, tr],
-                         colormap=cm.get_cmap(
-                             name=self.fan_colormap_name, lut=12),
-                         q=self.percentiles,
-                         **self._plot_params)
+                fanchart(
+                    ax=self.axes,
+                    x=tr,
+                    y=self.curves[:, tr],
+                    colormap=cm.get_cmap(name=self.fan_colormap_name, lut=12),
+                    q=self.percentiles,
+                    **self._plot_params
+                )
 
                 for i in nref_idx:
                     self._plotted_lines[i] = self.axes.plot(
-                        tr, self.curves[i, tr],
-                        color=self._curves_colors[i])[0]
+                        tr, self.curves[i, tr], color=self._curves_colors[i]
+                    )[0]
 
                 # We must add the selected data over the fanchart.
                 self.update_chart(selected_data=True)
 
-        if 'highlighted_timestep' in kwargs:
+        if "highlighted_timestep" in kwargs:
             # If the timestep indicator line is drawn, we set it as invisible
             # here.
             if self._vline is not None:
                 self._vline.set_visible(False)
 
             if self.highlighted_timestep is not None:
-                self._vline = self.axes.axvline(x=self.highlighted_timestep,
-                                                **self._vline_props)
+                self._vline = self.axes.axvline(
+                    x=self.highlighted_timestep, **self._vline_props
+                )
 
-        if 'apply_transforms' in kwargs:
+        if "apply_transforms" in kwargs:
             self._zphandler.apply_transforms()
 
-        if 'redraw_references' in kwargs:
+        if "redraw_references" in kwargs:
             for i in self._reference_idx:
                 l = self._plotted_lines[i]
                 if l is not None and l in self.axes.lines:
                     l.remove()
                 self._plotted_lines[i] = self.axes.plot(
-                    tr, self.curves[i, tr], **self._reference_parameters[i])[0]
+                    tr, self.curves[i, tr], **self._reference_parameters[i]
+                )[0]
                 if i in self._hidden_ref:
                     self._plotted_lines[i].set_visible(False)
 
@@ -604,13 +615,23 @@ class Fanchart(FigureCanvas, BrushableCanvas):
 
 
 def main():
-    from PyQt5.QtWidgets import (QApplication, QComboBox, QFormLayout, QLabel,
-                                 QMainWindow, QWidget, QPushButton,
-                                 QHBoxLayout, QVBoxLayout)
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QComboBox,
+        QFormLayout,
+        QLabel,
+        QMainWindow,
+        QWidget,
+        QPushButton,
+        QHBoxLayout,
+        QVBoxLayout,
+    )
     import sys
+
     """
     Simple feature test function for the Fanchart class.
     """
+
     class MyTestWidget(QMainWindow):
         """
         Qt derived class to embed our plot.
@@ -620,20 +641,24 @@ def main():
             super().__init__()
             self.left = 0
             self.top = 0
-            self.title = 'Fanchart test'
+            self.title = "Fanchart test"
             self.width = 1000
             self.height = 1000
-            self.colormaps = {'Shades of Red': 'Reds',
-                              'Shades of Blue': 'Blues',
-                              'Rainbow': 'rainbow',
-                              'Greyscale': 'gray_r'}
+            self.colormaps = {
+                "Shades of Red": "Reds",
+                "Shades of Blue": "Blues",
+                "Rainbow": "rainbow",
+                "Greyscale": "gray_r",
+            }
 
-            self.lines_colormap = {'Autumn': 'autumn',
-                                   'Copper': 'copper',
-                                   'Heat': 'hot',
-                                   'Summer': 'summer',
-                                   'Winter': 'winter',
-                                   'Terrain': 'gist_earth', }
+            self.lines_colormap = {
+                "Autumn": "autumn",
+                "Copper": "copper",
+                "Heat": "hot",
+                "Summer": "summer",
+                "Winter": "winter",
+                "Terrain": "gist_earth",
+            }
             self.buildUI()
             self.update_data()
 
@@ -641,31 +666,31 @@ def main():
             self.setWindowTitle(self.title)
             self.setGeometry(self.left, self.top, self.width, self.height)
 
-            self.fanchart = Fanchart(canvas_name='fanchart1', parent=self)
-            title = self.fanchart.base_plot_name() + ' of Random Data'
+            self.fanchart = Fanchart(canvas_name="fanchart1", parent=self)
+            title = self.fanchart.base_plot_name() + " of Random Data"
             self.fanchart.set_plot_title(title)
 
             self.combo_colormap = QComboBox(self)
-            self.combo_colormap.currentIndexChanged.connect(
-                self.colormap_changed)
+            self.combo_colormap.currentIndexChanged.connect(self.colormap_changed)
             for k in self.colormaps.keys():
                 self.combo_colormap.addItem(k)
 
             self.combo_line_colormap = QComboBox(self)
             self.combo_line_colormap.currentIndexChanged.connect(
-                self.line_colormap_changed)
+                self.line_colormap_changed
+            )
             for k in self.lines_colormap.keys():
                 self.combo_line_colormap.addItem(k)
 
-            p10_button = QPushButton('Enable P10', self)
+            p10_button = QPushButton("Enable P10", self)
             p10_button.clicked.connect(self.enableP10)
-            p50_button = QPushButton('Enable P50', self)
+            p50_button = QPushButton("Enable P50", self)
             p50_button.clicked.connect(self.enableP50)
-            p90_button = QPushButton('Enable P90', self)
+            p90_button = QPushButton("Enable P90", self)
             p90_button.clicked.connect(self.enableP90)
-            rand_data = QPushButton('Generate new data', self)
+            rand_data = QPushButton("Generate new data", self)
             rand_data.clicked.connect(self.update_data)
-            reset_button = QPushButton('Reset view', self)
+            reset_button = QPushButton("Reset view", self)
             reset_button.clicked.connect(self.reset_plot)
 
             self.main_widget = QWidget(self)
@@ -673,8 +698,8 @@ def main():
             l.addWidget(self.fanchart)
 
             combo_layout = QFormLayout(self.main_widget)
-            l1 = QLabel('Fans colormap:')
-            l2 = QLabel('Lines colormap:')
+            l1 = QLabel("Fans colormap:")
+            l2 = QLabel("Lines colormap:")
             combo_layout.addRow(l1, self.combo_colormap)
             combo_layout.addRow(l2, self.combo_line_colormap)
 
@@ -693,23 +718,22 @@ def main():
 
         def update_data(self):
             curves = np.random.normal(size=(10, 50))
-            curves = np.vstack(
-                (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
+            curves = np.vstack((curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
 
             self.fanchart.set_curves(curves)
-            self.fanchart.set_reference_curve(curves.shape[0] - 3,
-                                              True, False, color='m',
-                                              marker='v')
-            self.fanchart.set_reference_curve(curves.shape[0] - 2,
-                                              True, False, color='y',
-                                              marker='o')
-            self.fanchart.set_reference_curve(curves.shape[0] - 1,
-                                              True, True, color='c',
-                                              marker='^')
+            self.fanchart.set_reference_curve(
+                curves.shape[0] - 3, True, False, color="m", marker="v"
+            )
+            self.fanchart.set_reference_curve(
+                curves.shape[0] - 2, True, False, color="y", marker="o"
+            )
+            self.fanchart.set_reference_curve(
+                curves.shape[0] - 1, True, True, color="c", marker="^"
+            )
 
         def brush_series(self, child_name, obj_ids):
-            print('widget {} brushed some objects.'.format(child_name))
-            print('Objects:\n\t', obj_ids)
+            print("widget {} brushed some objects.".format(child_name))
+            print("Objects:\n\t", obj_ids)
 
         def keyPressEvent(self, e):
             # Test if the key is a number.
@@ -750,5 +774,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,14 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-"""
-"""
+""" """
 
 import numpy as np
 import scipy.spatial.distance
 from matplotlib import cm
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QPoint
 from PyQt5.QtWidgets import QSizePolicy, QToolTip
@@ -18,11 +16,9 @@ from brushableplot import BrushableCanvas
 from zoompanhandler import ZoomPanHandler
 
 
-def rank_series(curves_data,
-                baseline_idx,
-                window_length=None,
-                metric='euclidean',
-                inverted=False):
+def rank_series(
+    curves_data, baseline_idx, window_length=None, metric="euclidean", inverted=False
+):
     """
     Builds a distance based ranking of the input data compared to the baseline
     data. The closer the a curve is to the baseline, the better (smaller) it's
@@ -57,10 +53,12 @@ def rank_series(curves_data,
 
     if baseline_idx >= curves_data.shape[0]:
         raise ValueError(
-            'Invalid index for the baseline data {}/{}.'.format(
-                baseline_idx. curve_data.shape[0]))
+            "Invalid index for the baseline data {}/{}.".format(
+                baseline_idx.curve_data.shape[0]
+            )
+        )
     if window_length and window_length > curves_data.shape[1]:
-        raise ValueError('Window length is larger than series length.')
+        raise ValueError("Window length is larger than series length.")
 
     x, y = curves_data.shape
     R = np.zeros(shape=(x, y))
@@ -104,8 +102,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
     For multiple references, multiple objects must be created.
     """
 
-    def __init__(self, canvas_name, parent=None, width=5, height=5, dpi=100,
-                 **kwargs):
+    def __init__(self, canvas_name, parent=None, width=5, height=5, dpi=100, **kwargs):
         """
         Parameters
         ----------
@@ -130,9 +127,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self._axes = fig.add_subplot(1, 1, 1)
         FigureCanvas.__init__(self, fig)
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.setParent(parent)
         BrushableCanvas.__init__(self, canvas_name, parent)
@@ -152,16 +147,16 @@ class RankChart(FigureCanvas, BrushableCanvas):
         # Plot style setup
         self._plot_title = self.base_plot_name()
         self._reference_parameters = {}
-        self._cmap_name = 'rainbow'
+        self._cmap_name = "rainbow"
         self._curves_colors = {}
         self._hthresh_line = None
         self._ts_line = None
         self._group_selection = False
         self._plot_params = kwargs
-        if 'picker' not in self._plot_params:
-            self._plot_params['picker'] = 2
-        if 'linewidth' not in self._plot_params:
-            self._plot_params['linewidth'] = 1.5
+        if "picker" not in self._plot_params:
+            self._plot_params["picker"] = 2
+        if "linewidth" not in self._plot_params:
+            self._plot_params["linewidth"] = 1.5
 
         self._perctext = None
         # Callback IDs
@@ -223,7 +218,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         """
         Static method that returns the base name of this plot.
         """
-        return 'Bump Chart'
+        return "Bump Chart"
 
     @property
     def colormap_name(self):
@@ -315,14 +310,12 @@ class RankChart(FigureCanvas, BrushableCanvas):
         self._baseline_idx = None
 
         # Reseting the highlighted data
-        self.highlight_data(self._highlighted_data,
-                            erase=True, update_chart=False)
+        self.highlight_data(self._highlighted_data, erase=True, update_chart=False)
 
         if update_chart:
             self.update_chart(data_changed=True)
 
-    def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
-                            **kwargs):
+    def set_reference_curve(self, curve_idx, is_ref, update_chart=True, **kwargs):
         """
         Marks a curve as reference if 'is_ref' is True. Restores the
         curve status as 'common' if 'is_ref' is False. This disengages the
@@ -344,7 +337,8 @@ class RankChart(FigureCanvas, BrushableCanvas):
         """
         if curve_idx not in range(self.curves.shape[0]):
             raise ValueError(
-                'Index out of range: {}/{}'.format(curve_idx, self.curves.shape[0]))
+                "Index out of range: {}/{}".format(curve_idx, self.curves.shape[0])
+            )
         if is_ref:
             self._reference_idx.add(curve_idx)
             self._reference_parameters[curve_idx] = kwargs
@@ -370,7 +364,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             update. Default value is True.
         """
         if curve_idx not in range(self.curves.shape[0]):
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
         self._baseline_idx = curve_idx
         if update_chart:
             self.update_chart(data_changed=True)
@@ -388,7 +382,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if self._plotted_series:
             for art in self._plotted_series:
                 if art:
-                    art[0].set_linewidth(self._plot_params['linewidth'])
+                    art[0].set_linewidth(self._plot_params["linewidth"])
 
         if not curve_idx or curve_idx not in range(self.curves.shape[0]):
             self.draw()
@@ -398,7 +392,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if not self._plotted_series[curve_idx]:
             return
         art = self._plotted_series[curve_idx][0]
-        art.set_linewidth(self._plot_params['linewidth'] * 2)
+        art.set_linewidth(self._plot_params["linewidth"] * 2)
         self.draw()
 
     def set_plot_title(self, title, update_chart=True):
@@ -506,7 +500,8 @@ class RankChart(FigureCanvas, BrushableCanvas):
             return
         if not (start == 0 and end == self.curves.shape[1]):
             self._time_range_poly = self.axes.axvspan(
-                start, end, facecolor='blue', alpha=0.2)
+                start, end, facecolor="blue", alpha=0.2
+            )
 
         self._time_range = (start, end)
         self.draw()
@@ -562,14 +557,14 @@ class RankChart(FigureCanvas, BrushableCanvas):
             for art in self._plotted_series:
                 if not art:
                     continue
-                art[0].set_linewidth(self._plot_params['linewidth'])
+                art[0].set_linewidth(self._plot_params["linewidth"])
 
         self.draw()
 
         if event.xdata is None or event.ydata is None or self._rank_series is None:
             return True
 
-        self._ts_line = self.axes.axvline(x=event.xdata, c='b', ls='--')
+        self._ts_line = self.axes.axvline(x=event.xdata, c="b", ls="--")
 
         # If the group selection is enabled, we show a preview of all curves
         # that will be highlighted should the user click the mouse button.
@@ -584,8 +579,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
                     if series[ts] > event.ydata and self._is_normal_curve_idx(i):
                         self.axes.lines[i].set_color(cm.gray(200))
 
-            self._hthresh_line = self.axes.axhline(y=event.ydata, c='b',
-                                                   linewidth=2)
+            self._hthresh_line = self.axes.axhline(y=event.ydata, c="b", linewidth=2)
         else:
             hover_idx = None
             for i, art in enumerate(self._plotted_series):
@@ -593,7 +587,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
                     continue
                 contains, _ = art[0].contains(event)
                 if contains:
-                    art[0].set_linewidth(self._plot_params['linewidth'] * 2)
+                    art[0].set_linewidth(self._plot_params["linewidth"] * 2)
                     if not self.curvenames or i > len(self.curvenames):
                         return False
                     hover_idx = i
@@ -604,11 +598,9 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 palette.setColor(QPalette.ToolTipBase, QColor(252, 243, 207))
                 palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
                 QToolTip.setPalette(palette)
-                QToolTip.setFont(QFont('Arial', 14, QFont.Bold))
-                pos = self.mapToGlobal(
-                    QPoint(event.x, self.height() - event.y))
-                QToolTip.showText(pos,
-                                  '{}'.format(self.curvenames[hover_idx]))
+                QToolTip.setFont(QFont("Arial", 14, QFont.Bold))
+                pos = self.mapToGlobal(QPoint(event.x, self.height() - event.y))
+                QToolTip.showText(pos, "{}".format(self.curvenames[hover_idx]))
             else:
                 QToolTip.hideText()
                 self.update()
@@ -642,8 +634,9 @@ class RankChart(FigureCanvas, BrushableCanvas):
             # with the mouse pointer and add them to the list of lines to
             # highlight.
             if self.group_selection_enabled:
-                self.highlight_data(self.highlighted_data, erase=True,
-                                    update_chart=False)
+                self.highlight_data(
+                    self.highlighted_data, erase=True, update_chart=False
+                )
                 ts = int(event.xdata - self.time_range[0] + 0.5)
                 if self.rank_inverted:
                     for i, l in enumerate(self._rank_series):
@@ -692,7 +685,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
             for art in self._plotted_series:
                 if not art:
                     continue
-                art[0].set_linewidth(self._plot_params['linewidth'])
+                art[0].set_linewidth(self._plot_params["linewidth"])
 
         if self._ts_line is not None and self._hthresh_line in self.axes.lines:
             self._ts_line.remove()
@@ -706,7 +699,7 @@ class RankChart(FigureCanvas, BrushableCanvas):
         if self.curves is None or not self._baseline_idx:
             return
 
-        if 'selected_data' in kwargs:
+        if "selected_data" in kwargs:
             # If there are no selected series, we restore their alpha to 1.0
             # (totally opaque)
             bg_alpha = 0.1
@@ -719,60 +712,60 @@ class RankChart(FigureCanvas, BrushableCanvas):
             for idx in self.highlighted_data:
                 self.axes.lines[idx].set_alpha(1.0)
 
-        if 'data_changed' in kwargs:
+        if "data_changed" in kwargs:
             self.axes.cla()
             self.axes.set_title(self.plot_title)
-            fmt_xlab = 'Timestep ({} baseline)'
+            fmt_xlab = "Timestep ({} baseline)"
             if not self.curvenames:
                 fmt_xlab = fmt_xlab.format(self._baseline_idx)
             else:
-                fmt_xlab = fmt_xlab.format(
-                    self._curvenames[self._baseline_idx])
+                fmt_xlab = fmt_xlab.format(self._curvenames[self._baseline_idx])
 
             self.axes.set_xlabel(fmt_xlab)
-            self.axes.set_ylabel('Rank')
+            self.axes.set_ylabel("Rank")
             xmin, xmax = self.time_range
             ymax = self._curves.shape[0]
             self.axes.set_xlim([xmin, xmax - 1])
             self.axes.set_ylim([0, ymax])
 
             # Figuring out the axis to set the baseline color.
-            spine = 'bottom'
-            ospine = 'top'
+            spine = "bottom"
+            ospine = "top"
             ycoord = 0.065
             if self._rank_inverted:
-                spine = 'top'
-                ospine = 'bottom'
+                spine = "top"
+                ospine = "bottom"
                 ycoord = 0.9
             self.axes.spines[spine].set_linewidth(2.5)
             self.axes.spines[spine].set_color(
-                self._reference_parameters[self._baseline_idx]['color'])
+                self._reference_parameters[self._baseline_idx]["color"]
+            )
             self.axes.spines[ospine].set_linewidth(1.0)
-            self.axes.spines[ospine].set_color('black')
+            self.axes.spines[ospine].set_color("black")
 
             # Removing/redrawing the baseline text.
-#            if self._perctext:
-#                self._perctext.remove()
-#            if self.curvenames:
-#                self._perctext = self.axes.figure.text(
-#                    0.9, ycoord, self.curvenames[self._baseline_idx],
-#                    color=self._reference_parameters[self._baseline_idx]['color'])
+            #            if self._perctext:
+            #                self._perctext.remove()
+            #            if self.curvenames:
+            #                self._perctext = self.axes.figure.text(
+            #                    0.9, ycoord, self.curvenames[self._baseline_idx],
+            #                    color=self._reference_parameters[self._baseline_idx]['color'])
 
             self._plotted_series = [None] * self.curves.shape[0]
 
             curves = self.curves
             if self.time_range[0] != 0 or self.time_range[1] != self.curves.shape[1]:
-                curves = curves[:, self.time_range[0]:self.time_range[1]]
-            self._rank_series = rank_series(curves, self._baseline_idx,
-                                            inverted=self.rank_inverted)
+                curves = curves[:, self.time_range[0] : self.time_range[1]]
+            self._rank_series = rank_series(
+                curves, self._baseline_idx, inverted=self.rank_inverted
+            )
 
-            normal_idx = [i for i in range(len(self._rank_series))
-                          if self._is_normal_curve_idx(i)]
+            normal_idx = [
+                i for i in range(len(self._rank_series)) if self._is_normal_curve_idx(i)
+            ]
 
-            colormap = cm.get_cmap(name=self.colormap_name,
-                                   lut=len(self.curves))
-            self._curves_colors = dict((i, colormap(i))
-                                       for i in normal_idx)
+            colormap = cm.get_cmap(name=self.colormap_name, lut=len(self.curves))
+            self._curves_colors = dict((i, colormap(i)) for i in normal_idx)
 
             for i, r in enumerate(self._rank_series):
                 if i == self._baseline_idx:
@@ -781,10 +774,10 @@ class RankChart(FigureCanvas, BrushableCanvas):
                 if i in self._reference_idx:
                     plot_params = self._reference_parameters[i]
                 else:
-                    plot_params['color'] = self._curves_colors[i]
+                    plot_params["color"] = self._curves_colors[i]
                 self._plotted_series[i] = self.axes.plot(
-                    range(self.time_range[0], self.time_range[1]), r,
-                    **plot_params)
+                    range(self.time_range[0], self.time_range[1]), r, **plot_params
+                )
 
             self.update_chart(selected_data=True)
 
@@ -797,13 +790,17 @@ class RankChart(FigureCanvas, BrushableCanvas):
         """
         fig = self.figure
         self._cb_mouse_move_id = fig.canvas.mpl_connect(
-            'motion_notify_event', self.cb_mouse_motion)
+            "motion_notify_event", self.cb_mouse_motion
+        )
         self._cb_mouse_button_id = fig.canvas.mpl_connect(
-            'button_press_event', self.cb_mouse_button)
+            "button_press_event", self.cb_mouse_button
+        )
         self._cb_axes_leave_id = fig.canvas.mpl_connect(
-            'axes_leave_event', self.cb_axes_leave)
+            "axes_leave_event", self.cb_axes_leave
+        )
         self._cb_fig_leave_id = fig.canvas.mpl_connect(
-            'figure_leave_event', self.cb_axes_leave)
+            "figure_leave_event", self.cb_axes_leave
+        )
 
     def _disconnect_cb(self):
         """
@@ -836,14 +833,25 @@ class RankChart(FigureCanvas, BrushableCanvas):
 def main():
     from PyQt5 import QtCore
     from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
-                                 QHBoxLayout, QVBoxLayout, QPushButton,
-                                 QMessageBox, QCheckBox, QLabel, QSlider,
-                                 QFormLayout)
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QWidget,
+        QHBoxLayout,
+        QVBoxLayout,
+        QPushButton,
+        QMessageBox,
+        QCheckBox,
+        QLabel,
+        QSlider,
+        QFormLayout,
+    )
     import sys
+
     """
     Simple feature test function for the RankChart class.
     """
+
     class MyTestWidget(QMainWindow):
         """
         Qt derived class to embed our plot.
@@ -853,7 +861,7 @@ def main():
             super().__init__()
             self.left = 0
             self.top = 0
-            self.title = 'Dummy Qt widget'
+            self.title = "Dummy Qt widget"
             self.width = 600
             self.height = 400
             self._sld_timestep_start = None
@@ -877,34 +885,33 @@ def main():
             self.setFocusPolicy(QtCore.Qt.WheelFocus)
             self.setFocus()
 
-            self.rank_chart = RankChart(parent=self, canvas_name='rank1')
+            self.rank_chart = RankChart(parent=self, canvas_name="rank1")
 
-            p10_baseline_button = QPushButton('Set P10 as baseline', self)
+            p10_baseline_button = QPushButton("Set P10 as baseline", self)
             p10_baseline_button.clicked.connect(self.set_baseline_p10)
-            p50_baseline_button = QPushButton('Set P50 as baseline', self)
+            p50_baseline_button = QPushButton("Set P50 as baseline", self)
             p50_baseline_button.clicked.connect(self.set_baseline_p50)
-            p90_baseline_button = QPushButton('Set P90 as baseline', self)
+            p90_baseline_button = QPushButton("Set P90 as baseline", self)
             p90_baseline_button.clicked.connect(self.set_baseline_p90)
-            rand_data = QPushButton('Generate new data', self)
+            rand_data = QPushButton("Generate new data", self)
             rand_data.clicked.connect(self.update_data)
-            group_sel = QCheckBox('Group Selection', self)
+            group_sel = QCheckBox("Group Selection", self)
             group_sel.setChecked(self.rank_chart.group_selection_enabled)
             group_sel.stateChanged.connect(self.set_group_selection)
-            reset_button = QPushButton('Reset view', self)
+            reset_button = QPushButton("Reset view", self)
             reset_button.clicked.connect(self.reset_plot)
-            rank_inverted = QPushButton('Invert rank', self)
+            rank_inverted = QPushButton("Invert rank", self)
             rank_inverted.clicked.connect(self.set_rank_inverted)
 
-            lbl_start_ts = QLabel('Start time', self)
-            lbl_end_ts = QLabel('End time', self)
+            lbl_start_ts = QLabel("Start time", self)
+            lbl_end_ts = QLabel("End time", self)
 
             self._sld_timestep_start = QSlider(Qt.Horizontal, self)
             self._sld_timestep_start.setTickPosition(QSlider.TicksBothSides)
             self._sld_timestep_start.setMinimum(0)
             self._sld_timestep_start.setSingleStep(1)
             self._sld_timestep_start.setPageStep(5)
-            self._sld_timestep_start.valueChanged.connect(
-                self.set_start_timestep)
+            self._sld_timestep_start.valueChanged.connect(self.set_start_timestep)
 
             self._sld_timestep_end = QSlider(Qt.Horizontal, self)
             self._sld_timestep_end.setMinimum(0)
@@ -939,19 +946,23 @@ def main():
         def update_data(self):
             curves = np.random.normal(size=(8, 50))
             self.curves = np.vstack(
-                (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
+                (curves, np.percentile(curves, q=[10, 50, 90], axis=0))
+            )
 
             self.rank_chart.set_curves(self.curves, False)
-            self.rank_chart.set_reference_curve(self.curves.shape[0] - 3, True,
-                                                False, color='r', marker='v')
-            self.rank_chart.set_reference_curve(self.curves.shape[0] - 2, True,
-                                                False, color='b', marker='<')
-            self.rank_chart.set_reference_curve(self.curves.shape[0] - 1, True,
-                                                False, color='g', marker='^')
+            self.rank_chart.set_reference_curve(
+                self.curves.shape[0] - 3, True, False, color="r", marker="v"
+            )
+            self.rank_chart.set_reference_curve(
+                self.curves.shape[0] - 2, True, False, color="b", marker="<"
+            )
+            self.rank_chart.set_reference_curve(
+                self.curves.shape[0] - 1, True, False, color="g", marker="^"
+            )
             self.rank_chart.set_baseline_curve(self.curves.shape[0] - 2, True)
 
-            curvenames = ['Curve-' + str(i) for i in range(curves.shape[0])]
-            curvenames.extend(['P10', 'P50', 'P90'])
+            curvenames = ["Curve-" + str(i) for i in range(curves.shape[0])]
+            curvenames.extend(["P10", "P50", "P90"])
             self.rank_chart.set_curvenames(curvenames)
 
             min_ts, max_ts = self.max_timerange
@@ -977,8 +988,8 @@ def main():
             self.rank_chart.set_baseline_curve(self.curves.shape[0] - 1, True)
 
         def set_brushed_data(self, child_name, obj_ids):
-            print('widget {} brushed some objects.'.format(child_name))
-            print('Objects:\n\t', obj_ids)
+            print("widget {} brushed some objects.".format(child_name))
+            print("Objects:\n\t", obj_ids)
 
         def set_start_timestep(self, start_ts):
             start_min, _ = self.max_timerange
@@ -1015,12 +1026,16 @@ def main():
             self.rank_chart.set_group_selection_enabled(check)
 
         def set_rank_inverted(self):
-            self.rank_chart.set_rank_inverted(
-                not self.rank_chart.rank_inverted)
+            self.rank_chart.set_rank_inverted(not self.rank_chart.rank_inverted)
 
         def popup_question_dialog(self, title, question):
-            msg = QMessageBox(QMessageBox.Question, title, question,
-                              QMessageBox.Yes | QMessageBox.No, self)
+            msg = QMessageBox(
+                QMessageBox.Question,
+                title,
+                question,
+                QMessageBox.Yes | QMessageBox.No,
+                self,
+            )
             answer = msg.exec()
             return answer == QMessageBox.Yes
 
@@ -1033,5 +1048,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

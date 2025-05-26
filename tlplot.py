@@ -11,9 +11,8 @@ import scipy.spatial.distance
 import sklearn.manifold
 from enum import Enum
 from matplotlib.collections import LineCollection
-from matplotlib.colors import to_rgba, rgb_to_hsv, hsv_to_rgb
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import cm
 from PyQt5.QtCore import QPoint
@@ -26,8 +25,9 @@ from mp import time_lapse_lamp
 from zoompanhandler import ZoomPanHandler
 
 
-def _plot_timelapse_lamp(ax, point_list, plot_points=True,
-                         plot_lines=False, path_colors=None, **kwargs):
+def _plot_timelapse_lamp(
+    ax, point_list, plot_points=True, plot_lines=False, path_colors=None, **kwargs
+):
     """
     A helper function to plot the time lapse lamp points.
 
@@ -67,7 +67,7 @@ def _plot_timelapse_lamp(ax, point_list, plot_points=True,
         pc = None
         pl = None
         if path_colors is not None:
-            kwargs['c'] = path_colors[i]
+            kwargs["c"] = path_colors[i]
         if plot_points:
             pc = ax.scatter(x, y, **kwargs)
         if plot_lines:
@@ -78,15 +78,15 @@ def _plot_timelapse_lamp(ax, point_list, plot_points=True,
 
 
 class SaturationMapType(Enum):
-    CONSTANT = 'constant'
-    LINEAR_INC = 'linear_increasing'
-    LINEAR_DEC = 'linear_decreasing'
-    VARIANCE = 'variance'
+    CONSTANT = "constant"
+    LINEAR_INC = "linear_increasing"
+    LINEAR_DEC = "linear_decreasing"
+    VARIANCE = "variance"
 
 
 class GlyphSizeMap(Enum):
-    LINEAR_INC = 'linear_increasing'
-    LINEAR_DEC = 'linear_decreasing'
+    LINEAR_INC = "linear_increasing"
+    LINEAR_DEC = "linear_decreasing"
 
 
 class TimeLapseChart(FigureCanvas, BrushableCanvas):
@@ -131,9 +131,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self._axes = fig.add_subplot(1, 1, 1)
         FigureCanvas.__init__(self, fig)
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.setParent(parent)
         BrushableCanvas.__init__(self, canvas_name, parent)
@@ -161,14 +159,14 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._brush_stroke_artists = {}
         self._plot_title = self.base_plot_name()
         self._reference_parameters = {}
-        self._cmap_name = 'rainbow'
+        self._cmap_name = "rainbow"
         self._plot_params = kwargs
         self._brush_size_lims = (2, 35)
         self._saturation_map = SaturationMapType.CONSTANT
         self._glyph_size_map = GlyphSizeMap.LINEAR_INC
 
-        if 'picker' not in self._plot_params:
-            self._plot_params['picker'] = 3
+        if "picker" not in self._plot_params:
+            self._plot_params["picker"] = 3
 
         self._plot_line_params = dict(linewidth=1.5)
         self._plot_point_params = dict(s=40)
@@ -311,7 +309,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         """
         Static method that returns the base name of this plot.
         """
-        return 'Time-lapsed LAMP Chart'
+        return "Time-lapsed LAMP Chart"
 
     @property
     def dims(self):
@@ -435,8 +433,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         self._reference_parameters.clear()
 
         # Reseting the highlighted data
-        self.highlight_data(self.highlighted_data,
-                            erase=True, update_chart=False)
+        self.highlight_data(self.highlighted_data, erase=True, update_chart=False)
 
         self._update_projected_data()
         self._build_kdtree()
@@ -445,8 +442,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self.update_chart(data_changed=True, selected_data=True)
         self._zphandler.set_base_transforms()
 
-    def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
-                            **kwargs):
+    def set_reference_curve(self, curve_idx, is_ref, update_chart=True, **kwargs):
         """
         Adds or removes a curve from the reference curves set. Reference curves
         are not included in the picking and will never have their alpha changed
@@ -464,9 +460,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         kwargs: Plot arguments for the reference curve.
         """
         if curve_idx not in range(self.curves.shape[0]):
-            fmt = 'Index out of range: {}/{}'
-            raise ValueError(
-                fmt.format(curve_idx, self.curves.shape[0]))
+            fmt = "Index out of range: {}/{}"
+            raise ValueError(fmt.format(curve_idx, self.curves.shape[0]))
         if is_ref:
             self._reference_idx.add(curve_idx)
             self._reference_parameters[curve_idx] = kwargs
@@ -493,7 +488,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         True if the given index is a reference curve, False otherwise.
         """
         if idx < 0 or idx > self.curves.shape[0]:
-            raise ValueError('Index out of range.')
+            raise ValueError("Index out of range.")
         return idx in self._reference_idx
 
     def set_draw_curve(self, idx, draw):
@@ -509,7 +504,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             True to draw the curve, False to hide it.
         """
         if idx < 0 or idx > self.curves.shape[0]:
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
 
         if not draw:
             self._hidden_curves.add(idx)
@@ -530,7 +525,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         Returns wheter the selected curve is hidden or not.
         """
         if idx < 0 or idx > self.curves.shape[0]:
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
         if self._point_artists:
             return self._point_artists[idx].get_visible()
         elif self._line_artists:
@@ -538,10 +533,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         elif self._brush_stroke_artists:
             return self._brush_stroke_artists[idx].get_visible()
         else:
-            raise AttributeError('No draw call made yet')
+            raise AttributeError("No draw call made yet")
 
-    def set_timestep_data(self, start_time=None, end_time=None, step_time=None,
-                          update_chart=True):
+    def set_timestep_data(
+        self, start_time=None, end_time=None, step_time=None, update_chart=True
+    ):
         """
         Sets the data about the timestep range to use when projecting the
         curves. Raises AttributeError exceptions if the start time is larger
@@ -577,10 +573,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             self._timestep_data[2] = 1
             step_time = 1
         if start_time >= end_time:
-            raise AttributeError('Start time is larger or equal to end time.')
+            raise AttributeError("Start time is larger or equal to end time.")
         if step_time >= end_time - start_time:
-            raise AttributeError(
-                'Step time is larger than the given time range.')
+            raise AttributeError("Step time is larger than the given time range.")
 
         self._timestep_data[0] = start_time
         self._timestep_data[1] = end_time
@@ -616,7 +611,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated now.
         """
         self._plot_points = plot_points
-        if not self._plot_points and not self._plot_lines and not self._plot_brush_stroke:
+        if (
+            not self._plot_points
+            and not self._plot_lines
+            and not self._plot_brush_stroke
+        ):
             self.set_plot_lines(True, update_chart=update_chart)
             return
         if update_chart:
@@ -634,7 +633,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated now.
         """
         self._plot_lines = plot_lines
-        if not self._plot_lines and not self._plot_points and not self._plot_brush_stroke:
+        if (
+            not self._plot_lines
+            and not self._plot_points
+            and not self._plot_brush_stroke
+        ):
             self.set_plot_points(True, update_chart=update_chart)
             return
         if update_chart:
@@ -645,7 +648,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if plot_brush_stroke:
             self.set_plot_points(False, update_chart=False)
             self.set_plot_lines(False, update_chart=False)
-        if not self._plot_lines and not self._plot_points and not self._plot_brush_stroke:
+        if (
+            not self._plot_lines
+            and not self._plot_points
+            and not self._plot_brush_stroke
+        ):
             self.set_plot_points(True, update_chart=update_chart)
             return
         if update_chart:
@@ -715,7 +722,11 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated. Default value
             is True.
         """
-        self._saturation_map = satmap if isinstance(satmap, SaturationMapType) else SaturationMapType(satmap)
+        self._saturation_map = (
+            satmap
+            if isinstance(satmap, SaturationMapType)
+            else SaturationMapType(satmap)
+        )
         if update_chart:
             self.update_chart(plot_glyph=True)
 
@@ -731,7 +742,9 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             Switch to indicate if the plot should be updated. Default value
             is True.
         """
-        self._glyph_size_map = gsmap if isinstance(gsmap, GlyphSizeMap) else GlyphSizeMap(gsmap)
+        self._glyph_size_map = (
+            gsmap if isinstance(gsmap, GlyphSizeMap) else GlyphSizeMap(gsmap)
+        )
         if update_chart:
             self.update_chart(plot_glyph=True)
 
@@ -745,13 +758,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             The index of the curve to draw the tooltip on.
         """
         # Restoring the points/lines sizes.
-        #if self.plot_points:
+        # if self.plot_points:
         #    for art in self.axes.collections:
         #        if isinstance(art, LineCollection):
         #            art.set_linewidths(3)
         #        else:
         #            art.set_sizes([self.point_plot_params['s']])
-        #if self.plot_lines:
+        # if self.plot_lines:
         #    for art in self.axes.lines:
         #        art.set_linewidth(self.line_plot_params['linewidth'])
 
@@ -784,12 +797,12 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             return
 
         if self.plot_points:
-            #art = self.axes.collections[curve_idx]
-            #art.set_sizes([self.point_plot_params['s'] * 3])
+            # art = self.axes.collections[curve_idx]
+            # art.set_sizes([self.point_plot_params['s'] * 3])
             pass
         if self.plot_lines:
             art = self.axes.lines[curve_idx]
-            art.set_linewidth(self.line_plot_params['linewidth'] * 2)
+            art.set_linewidth(self.line_plot_params["linewidth"] * 2)
         self.draw()
 
     def reset_plot(self):
@@ -854,15 +867,17 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if self.plot_points:
             for art in self.axes.collections:
                 if isinstance(art, LineCollection):
-                    lwidths = np.linspace(self._brush_size_lims[0],
-                                          self._brush_size_lims[1],
-                                          self.curves.shape[1])
+                    lwidths = np.linspace(
+                        self._brush_size_lims[0],
+                        self._brush_size_lims[1],
+                        self.curves.shape[1],
+                    )
                     art.set_linewidths(lwidths)
                 else:
-                    art.set_sizes([self.point_plot_params['s']])
+                    art.set_sizes([self.point_plot_params["s"]])
         if self.plot_lines:
             for art in self.axes.lines:
-                art.set_linewidth(self.line_plot_params['linewidth'])
+                art.set_linewidth(self.line_plot_params["linewidth"])
 
         # If the event is outside the axes, we call the timestep callback to
         # notify anyone.
@@ -896,25 +911,25 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 if self.plot_points:
                     art = self.axes.collections[pidx]
                     if isinstance(art, LineCollection):
-                        lwidths = np.linspace(self._brush_size_lims[0],
-                                              3*self._brush_size_lims[1],
-                                              self.curves.shape[1])
+                        lwidths = np.linspace(
+                            self._brush_size_lims[0],
+                            3 * self._brush_size_lims[1],
+                            self.curves.shape[1],
+                        )
                         art.set_linewidths(lwidths)
                     else:
-                        art.set_sizes([self.point_plot_params['s'] * 3])
+                        art.set_sizes([self.point_plot_params["s"] * 3])
                 if self.plot_lines:
                     art = self.axes.lines[pidx]
-                    art.set_linewidth(self.line_plot_params['linewidth'] * 2)
+                    art.set_linewidth(self.line_plot_params["linewidth"] * 2)
 
                 palette = QPalette()
                 palette.setColor(QPalette.ToolTipBase, QColor(252, 243, 207))
                 palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
                 QToolTip.setPalette(palette)
-                QToolTip.setFont(QFont('Arial', 14, QFont.Bold))
-                pos = self.mapToGlobal(
-                    QPoint(event.x, self.height() - event.y))
-                QToolTip.showText(pos,
-                                  '{}'.format(self.curvenames[pidx]))
+                QToolTip.setFont(QFont("Arial", 14, QFont.Bold))
+                pos = self.mapToGlobal(QPoint(event.x, self.height() - event.y))
+                QToolTip.showText(pos, "{}".format(self.curvenames[pidx]))
 
                 if self._cb_notify_tooltip:
                     self._cb_notify_tooltip(self.name, pidx)
@@ -967,7 +982,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if self.curves is None or self.control_points is None:
             return
 
-        if 'selected_data' in kwargs:
+        if "selected_data" in kwargs:
             bg_alpha = 0.05
             if len(self.highlighted_data) == 0:
                 bg_alpha = 1.0
@@ -988,23 +1003,22 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 for i in self.highlighted_data:
                     self.axes.lines[i].set_alpha(1.0)
 
-        if 'data_changed' in kwargs or 'plot_glyph' in kwargs:
+        if "data_changed" in kwargs or "plot_glyph" in kwargs:
             nref_idx = set(range(self.curves.shape[0])) - self._reference_idx
             self.axes.cla()
             self.axes.set_title(self.plot_title)
-            self.axes.set_xlabel('Axis 1')
-            self.axes.set_ylabel('Axis 2')
+            self.axes.set_xlabel("Axis 1")
+            self.axes.set_ylabel("Axis 2")
             self._point_artists = {}
             self._line_artists = {}
             self._brush_stroke_artists = {}
 
-            colormap = cm.get_cmap(name=self.colormap_name,
-                                   lut=len(self.curves))
+            colormap = cm.get_cmap(name=self.colormap_name, lut=len(self.curves))
             for i in nref_idx:
                 # Handling the saturation mapping.
                 sat = []
                 if self.saturation_map_type == SaturationMapType.CONSTANT:
-                    sat = [1.0] * self.curves.shape[1]
+                    sat = [1.0] * (self.curves.shape[1] - 1)
                 elif self.saturation_map_type == SaturationMapType.LINEAR_INC:
                     sat = np.linspace(0.01, 0.95, self.curves.shape[1])
                 elif self.saturation_map_type == SaturationMapType.LINEAR_DEC:
@@ -1012,35 +1026,41 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 elif self.saturation_map_type == SaturationMapType.VARIANCE:
                     sat = 1.0 - self._ts_variance
                 else:
-                    raise ValueError('Invalid saturation map type defined.')
+                    raise ValueError("Invalid saturation map type defined.")
 
                 r, g, b, a = colormap(i)
                 h, s, v = rgb_to_hsv((r, g, b))
-                hsv_color = [(h, s*s1, v) for s1 in sat]
+                hsv_color = [(h, s * s1, v) for s1 in sat]
                 rgba_color = hsv_to_rgb(hsv_color)
 
-                #self._plot_params['color'] = colormap(i)
-                self._plot_params['color'] = rgba_color
-                self._plot_path_projection(self.projected_curves[i], i,
-                                           **self._plot_params)
+                # self._plot_params['color'] = colormap(i)
+                self._plot_params["color"] = rgba_color
+                self._plot_path_projection(
+                    self.projected_curves[i], i, **self._plot_params
+                )
 
             for i in self._reference_idx:
-                self._plot_path_projection(self.projected_curves[i], i,
-                                           **self._reference_parameters[i])
+                self._plot_path_projection(
+                    self.projected_curves[i], i, **self._reference_parameters[i]
+                )
 
             for i in self._hidden_curves:
                 if self._point_artists and self._point_artists[i]:
                     self._point_artists[i].set_visible(False)
                 if self._line_artists and self._line_artists[i]:
                     self._line_artists[i].set_visible(False)
-                if self._brush_stroke_artists and i < len(self._brush_stroke_artists) and self._brush_stroke_artists[i]:
+                if (
+                    self._brush_stroke_artists
+                    and i < len(self._brush_stroke_artists)
+                    and self._brush_stroke_artists[i]
+                ):
                     self._brush_stroke_artists[i].set_visible(False)
 
             self.axes.set_xticklabels([])
             self.axes.set_yticklabels([])
-            #self.update_chart(selected_data=True)
+            # self.update_chart(selected_data=True)
 
-        if 'apply_transforms' in kwargs:
+        if "apply_transforms" in kwargs:
             self._zphandler.apply_transforms()
 
         self.draw()
@@ -1051,13 +1071,13 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         Connects the callbacks to the matplotlib canvas.
         """
         fig = self.figure
-        self._cb_pick_id = fig.canvas.mpl_connect(
-            'pick_event', self.cb_mouse_pick)
+        self._cb_pick_id = fig.canvas.mpl_connect("pick_event", self.cb_mouse_pick)
         self._cb_mouse_move_id = fig.canvas.mpl_connect(
-            'motion_notify_event', self.cb_mouse_motion)
-        #self._cb_axes_leave_id = fig.canvas.mpl_connect(
+            "motion_notify_event", self.cb_mouse_motion
+        )
+        # self._cb_axes_leave_id = fig.canvas.mpl_connect(
         #    'axes_leave_event', self.cb_axes_leave)
-        #self._cb_fig_leave_id = fig.canvas.mpl_connect(
+        # self._cb_fig_leave_id = fig.canvas.mpl_connect(
         #    'figure_leave_event', self.cb_axes_leave)
 
     def _disconnect_cb(self):
@@ -1104,20 +1124,21 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         if self.plot_points:
             # Handling colors with the new alpha values.
             self._point_artists[curve_idx] = self.axes.scatter(
-                x, y, **{**self.point_plot_params, **kwargs})
+                x, y, **{**self.point_plot_params, **kwargs}
+            )
         if self.plot_lines:
             p = np.array([x, y]).T.reshape(-1, 1, 2)
             segs = np.concatenate([p[:-1], p[1:]], axis=1)
-            print('-------------------------------------------------')
-            if 'marker' in kwargs:
-                del kwargs['marker']
-            print(self.line_plot_params, kwargs.keys())
+            # print("-------------------------------------------------")
+            if "marker" in kwargs:
+                del kwargs["marker"]
+            # print(self.line_plot_params, kwargs.keys())
             lcol = LineCollection(segs, **{**self.line_plot_params, **kwargs})
 
             self.axes.add_collection(lcol)
             self._line_artists[curve_idx] = lcol
 
-            #self._line_artists[curve_idx] = self.axes.plot(
+            # self._line_artists[curve_idx] = self.axes.plot(
             #    x, y, **{**self.line_plot_params, **kwargs})[0]
         if self.plot_brush_stroke:
             if curve_idx in self._reference_idx:
@@ -1130,9 +1151,8 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             # sat = hsv[:, 1]
 
             for i in range(1, len(x)):
-                f = interp1d([x[i-1], x[i]],
-                             [y[i-1], y[i]])
-                xnew = np.linspace(x[i-1], x[i], N_POINTS)
+                f = interp1d([x[i - 1], x[i]], [y[i - 1], y[i]])
+                xnew = np.linspace(x[i - 1], x[i], N_POINTS)
                 ynew = f(xnew)
 
                 interp_x.extend(xnew)
@@ -1143,16 +1163,19 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
                 # saturation_new = sp(xnew)
 
             if self.glyph_size_type == GlyphSizeMap.LINEAR_INC:
-                glyph_sizes = np.linspace(self._brush_size_lims[0] * 2,
-                                          self._brush_size_lims[1],
-                                          len(interp_x))
+                glyph_sizes = np.linspace(
+                    self._brush_size_lims[0] * 2,
+                    self._brush_size_lims[1],
+                    len(interp_x),
+                )
             elif self.glyph_size_type == GlyphSizeMap.LINEAR_DEC:
-                glyph_sizes = np.linspace(self._brush_size_lims[1] * 2,
-                                          self._brush_size_lims[0],
-                                          len(interp_x))
+                glyph_sizes = np.linspace(
+                    self._brush_size_lims[1] * 2,
+                    self._brush_size_lims[0],
+                    len(interp_x),
+                )
 
-            c = self.axes.scatter(interp_x, interp_y,
-                                  s=glyph_sizes, **kwargs)
+            c = self.axes.scatter(interp_x, interp_y, s=glyph_sizes, **kwargs)
             self._brush_stroke_artists[curve_idx] = c
 
     def _update_projected_data(self):
@@ -1160,8 +1183,7 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
         Helper method to build the projections.
         """
         self._control_points = self._create_control_points()
-        proj_points = time_lapse_lamp(self.curves, self.curves,
-                                      self.control_points)
+        proj_points = time_lapse_lamp(self.curves, self.curves, self.control_points)
 
         if len(self.projected_curves) > 0:
             self._projected_curves = []
@@ -1200,11 +1222,12 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
             The data projected in an self.dims space. Each row corresponds to
             a single time series.
         """
-        tgt_data = self.curves[:, self.start_time:self.end_time:self.step_time]
-        D = scipy.spatial.distance.pdist(tgt_data, metric='euclidean')
+        tgt_data = self.curves[:, self.start_time : self.end_time : self.step_time]
+        D = scipy.spatial.distance.pdist(tgt_data, metric="euclidean")
         D = scipy.spatial.distance.squareform(D)
-        mds = sklearn.manifold.MDS(n_components=self.dims, max_iter=500,
-                                   eps=1e-9, dissimilarity='precomputed')
+        mds = sklearn.manifold.MDS(
+            n_components=self.dims, max_iter=500, eps=1e-9, dissimilarity="precomputed"
+        )
         fit = mds.fit(D)
         proj_points = fit.embedding_
 
@@ -1212,13 +1235,21 @@ class TimeLapseChart(FigureCanvas, BrushableCanvas):
 
 
 def main():
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
-                                 QPushButton, QVBoxLayout, QHBoxLayout,
-                                 QComboBox)
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QWidget,
+        QPushButton,
+        QVBoxLayout,
+        QHBoxLayout,
+        QComboBox,
+    )
     import sys
+
     """
     Simple feature test function for the TimeLapseLAMPChart class.
     """
+
     class MyTestWidget(QMainWindow):
         """
         Qt derived class to embed our plot.
@@ -1228,7 +1259,7 @@ def main():
             super().__init__()
             self.left = 0
             self.top = 0
-            self.title = 'Dummy Qt widget'
+            self.title = "Dummy Qt widget"
             self.width = 600
             self.height = 400
             self.buildUI()
@@ -1238,37 +1269,37 @@ def main():
             self.setWindowTitle(self.title)
             self.setGeometry(self.left, self.top, self.width, self.height)
 
-            self.lamp = TimeLapseChart(parent=self, canvas_name='lamp1')
-            self.lamp.set_colormap('gist_stern', update_chart=False)
-            self.lamp.set_plot_title('Time Lapse projection plot')
+            self.lamp = TimeLapseChart(parent=self, canvas_name="lamp1")
+            self.lamp.set_colormap("gist_stern", update_chart=False)
+            self.lamp.set_plot_title("Time Lapse projection plot")
 
-            points_button = QPushButton('Plot points', self)
+            points_button = QPushButton("Plot points", self)
             points_button.clicked.connect(self.switch_point_state)
-            lines_button = QPushButton('Plot lines', self)
+            lines_button = QPushButton("Plot lines", self)
             lines_button.clicked.connect(self.switch_line_state)
-            brush_stroke_button = QPushButton('Plot brush stroke', self)
+            brush_stroke_button = QPushButton("Plot brush stroke", self)
             brush_stroke_button.clicked.connect(self.switch_brush_stroke_state)
-            p10_button = QPushButton('Enable P10', self)
+            p10_button = QPushButton("Enable P10", self)
             p10_button.clicked.connect(self.enableP10)
-            p50_button = QPushButton('Enable P50', self)
+            p50_button = QPushButton("Enable P50", self)
             p50_button.clicked.connect(self.enableP50)
-            p90_button = QPushButton('Enable P90', self)
+            p90_button = QPushButton("Enable P90", self)
             p90_button.clicked.connect(self.enableP90)
-            rand_data = QPushButton('Generate new data', self)
+            rand_data = QPushButton("Generate new data", self)
             rand_data.clicked.connect(self.update_data)
-            reset_button = QPushButton('Reset view', self)
+            reset_button = QPushButton("Reset view", self)
             reset_button.clicked.connect(self.reset_plot)
 
             saturation_map_combo = QComboBox(self)
             saturation_map_combo.currentIndexChanged[str].connect(
-                self.set_saturation_map_type)
-            for k in ['constant', 'linear_increasing', 'linear_decreasing', 'variance']:
+                self.set_saturation_map_type
+            )
+            for k in ["constant", "linear_increasing", "linear_decreasing", "variance"]:
                 saturation_map_combo.addItem(k)
 
             glyph_size_combo = QComboBox(self)
-            glyph_size_combo.currentIndexChanged.connect(
-                self.set_glyph_size_type)
-            for k in ['constant', 'linear_increasing', 'linear_decreasing', 'variance']:
+            glyph_size_combo.currentIndexChanged.connect(self.set_glyph_size_type)
+            for k in ["constant", "linear_increasing", "linear_decreasing", "variance"]:
                 glyph_size_combo.addItem(k)
 
             self.main_widget = QWidget(self)
@@ -1302,7 +1333,7 @@ def main():
             self.lamp.set_plot_brush_stroke(not self.lamp.plot_brush_stroke)
 
         def set_saturation_map_type(self, text):
-            print(text)
+            # (text)
             self.lamp.set_saturation_map_type(text)
 
         def set_glyph_size_type(self, text):
@@ -1311,20 +1342,23 @@ def main():
         def update_data(self):
             curves = np.random.normal(size=(30, 50))
             self.curves = np.vstack(
-                (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
+                (curves, np.percentile(curves, q=[10, 50, 90], axis=0))
+            )
 
             self.lamp.set_curves(self.curves)
-            self.lamp.set_reference_curve(self.curves.shape[0] - 3, True, False,
-                                          color='r', marker='v')
-            self.lamp.set_reference_curve(self.curves.shape[0] - 2, True, False,
-                                          color='b', marker='<')
-            self.lamp.set_reference_curve(self.curves.shape[0] - 1, True, False,
-                                          color='g', marker='^')
+            self.lamp.set_reference_curve(
+                self.curves.shape[0] - 3, True, False, color="r", marker="v"
+            )
+            self.lamp.set_reference_curve(
+                self.curves.shape[0] - 2, True, False, color="b", marker="<"
+            )
+            self.lamp.set_reference_curve(
+                self.curves.shape[0] - 1, True, False, color="g", marker="^"
+            )
             self.lamp.update_chart(data_changed=True)
 
-            curvenames = ['Curve-' + str(i + 1)
-                          for i in range(curves.shape[0])]
-            curvenames.extend(['P10', 'P50', 'P90'])
+            curvenames = ["Curve-" + str(i + 1) for i in range(curves.shape[0])]
+            curvenames.extend(["P10", "P50", "P90"])
             self.lamp.set_curvenames(curvenames)
 
         def enableP10(self):
@@ -1343,8 +1377,8 @@ def main():
             self.lamp.set_draw_curve(c - 1, not draw)
 
         def set_brushed_data(self, child_name, obj_ids):
-            print('widget {} brushed some objects.'.format(child_name))
-            print('Objects:\n\t', obj_ids)
+            print("widget {} brushed some objects.".format(child_name))
+            print("Objects:\n\t", obj_ids)
 
         def reset_plot(self):
             self.lamp.reset_plot()
@@ -1355,5 +1389,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

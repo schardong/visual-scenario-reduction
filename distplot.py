@@ -8,8 +8,7 @@ Module to handle the Instance/Distance chart.
 import numpy as np
 import scipy.spatial.distance
 from matplotlib import cm
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QPoint
 from PyQt5.QtWidgets import QSizePolicy, QToolTip
@@ -38,8 +37,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
     technique.
     """
 
-    def __init__(self, canvas_name, parent, width=5, height=5, dpi=100,
-                 **kwargs):
+    def __init__(self, canvas_name, parent, width=5, height=5, dpi=100, **kwargs):
         """
         Parameters
         ----------
@@ -64,9 +62,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self._axes = fig.add_subplot(1, 1, 1)
         FigureCanvas.__init__(self, fig)
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.setParent(parent)
         BrushableCanvas.__init__(self, canvas_name, parent)
@@ -78,7 +74,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         self._points = None
         self._reference_idx = set()
         self._baseline_idx = None
-        self._distance_metric = 'euclidean'
+        self._distance_metric = "euclidean"
         self._curvenames = None
         self._point_artists = None
 
@@ -86,16 +82,16 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         self._plot_title = self.base_plot_name()
         self._log_scale = False
         self._reference_parameters = {}
-        self._cmap_name = 'rainbow'
+        self._cmap_name = "rainbow"
         self._points_colors = {}
         self._hthresh_line = None
         self._group_selection = False
         self._yidx_points = None
         self._plot_params = kwargs
-        if 'picker' not in self._plot_params:
-            self._plot_params['picker'] = 3
-        if 's' not in self._plot_params:
-            self._plot_params['s'] = 40
+        if "picker" not in self._plot_params:
+            self._plot_params["picker"] = 3
+        if "s" not in self._plot_params:
+            self._plot_params["s"] = 40
 
         # Callback IDs
         self._cb_mouse_move_id = None
@@ -166,7 +162,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         """
         Static method that returns the base name of this plot.
         """
-        return 'Distance Chart'
+        return "Distance Chart"
 
     @property
     def colormap_name(self):
@@ -276,15 +272,13 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         self._hthresh_line = None
 
         # Reseting the highlighted data
-        self.highlight_data(self._highlighted_data,
-                            erase=True, update_chart=False)
+        self.highlight_data(self._highlighted_data, erase=True, update_chart=False)
 
         if update_chart:
             self.update_chart(data_changed=True)
             self.reset_plot()
 
-    def set_reference_curve(self, curve_idx, is_ref, update_chart=True,
-                            **kwargs):
+    def set_reference_curve(self, curve_idx, is_ref, update_chart=True, **kwargs):
         """
         Marks a curve (point) as reference if 'is_ref' is True. Restores the
         curve status as 'common' if 'is_ref' is False. This disengages the
@@ -305,7 +299,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             marker, size, and others accepted by axes.scatter).
         """
         if curve_idx not in range(self.curves.shape[0]):
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
         if is_ref:
             self._reference_idx.add(curve_idx)
             self._reference_parameters[curve_idx] = kwargs
@@ -331,7 +325,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             Default value is True.
         """
         if curve_idx not in range(self.curves.shape[0]):
-            raise ValueError('Index out of range')
+            raise ValueError("Index out of range")
         self._baseline_idx = curve_idx
         if update_chart:
             self._hthresh_line = None
@@ -351,7 +345,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         if self._point_artists:
             for art in self._point_artists:
                 if art:
-                    art.set_sizes([self._plot_params['s']])
+                    art.set_sizes([self._plot_params["s"]])
 
         if not curve_idx or curve_idx not in range(self.curves.shape[0]):
             self.draw()
@@ -360,7 +354,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         # Increasing the radius of the selected point.
         art = self._point_artists[curve_idx]
         if art:
-            art.set_sizes([self._plot_params['s'] * 3])
+            art.set_sizes([self._plot_params["s"] * 3])
         self.draw()
 
     def set_plot_title(self, title, update_chart=True):
@@ -452,7 +446,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             for art in self._point_artists:
                 if art is None:
                     continue
-                art.set_sizes([self._plot_params['s']])
+                art.set_sizes([self._plot_params["s"]])
 
         if event.xdata is None or event.ydata is None or self._points is None:
             return False
@@ -467,8 +461,9 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                     continue
                 self.axes.collections[a].set_facecolor(cm.gray(200))
 
-                self._hthresh_line = self.axes.axhline(y=event.ydata, c='b',
-                                                       linewidth=2)
+                self._hthresh_line = self.axes.axhline(
+                    y=event.ydata, c="b", linewidth=2
+                )
         else:
             # Testing if the cursor is over a point. If it is, we plot the
             # tooltip and notify this event by calling the registered
@@ -482,7 +477,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                         continue
                     contains, _ = art.contains(event)
                     if contains:
-                        art.set_sizes([self._plot_params['s'] * 3])
+                        art.set_sizes([self._plot_params["s"] * 3])
                         if i > len(self.curvenames):
                             return False
                         hover_idx = i
@@ -490,15 +485,12 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
 
                 if hover_idx is not None:
                     palette = QPalette()
-                    palette.setColor(QPalette.ToolTipBase,
-                                     QColor(252, 243, 207))
+                    palette.setColor(QPalette.ToolTipBase, QColor(252, 243, 207))
                     palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
                     QToolTip.setPalette(palette)
-                    QToolTip.setFont(QFont('Arial', 14, QFont.Bold))
-                    pos = self.mapToGlobal(
-                        QPoint(event.x, self.height() - event.y))
-                    QToolTip.showText(pos, '{}'.format(
-                        self.curvenames[hover_idx]))
+                    QToolTip.setFont(QFont("Arial", 14, QFont.Bold))
+                    pos = self.mapToGlobal(QPoint(event.x, self.height() - event.y))
+                    QToolTip.showText(pos, "{}".format(self.curvenames[hover_idx]))
                 else:
                     QToolTip.hideText()
 
@@ -531,8 +523,9 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             # with the mouse pointer and add them to the list of paths to
             # highlight.
             if self.group_selection_enabled:
-                self.highlight_data(self.highlighted_data, erase=True,
-                                    update_chart=False)
+                self.highlight_data(
+                    self.highlighted_data, erase=True, update_chart=False
+                )
 
                 diff = self._points - event.ydata
                 below = [i for i in self._yidx_points if diff[i] <= 0]
@@ -579,14 +572,14 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             for art in self._point_artists:
                 if art is None:
                     continue
-                art.set_sizes([self._plot_params['s']])
+                art.set_sizes([self._plot_params["s"]])
         self.draw()
 
     def update_chart(self, **kwargs):
         if self.curves is None:
             return
 
-        if 'selected_data' in kwargs:
+        if "selected_data" in kwargs:
             # If there are no selected series, we restore their alpha to 1.0
             # (totally opaque)
             bg_alpha = 0.2
@@ -601,22 +594,22 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             for i in self.highlighted_data:
                 self.axes.collections[i].set_alpha(1.0)
 
-        if 'data_changed' in kwargs:
+        if "data_changed" in kwargs:
             self.axes.cla()
             self.axes.set_title(self.plot_title)
-            fmt_xlab = 'Scenario ({} baseline)'
+            fmt_xlab = "Scenario ({} baseline)"
             if not self.curvenames:
                 fmt_xlab = fmt_xlab.format(self._baseline_idx)
             else:
-                fmt_xlab = fmt_xlab.format(
-                    self._curvenames[self._baseline_idx])
+                fmt_xlab = fmt_xlab.format(self._curvenames[self._baseline_idx])
 
             self.axes.set_xlabel(fmt_xlab)
-            self.axes.set_ylabel('Distance')
+            self.axes.set_ylabel("Distance")
             self.axes.set_xlim([0, self.curves.shape[0] + 1])
-            self.axes.spines['bottom'].set_linewidth(2.5)
-            self.axes.spines['bottom'].set_color(
-                self._reference_parameters[self._baseline_idx]['color'])
+            self.axes.spines["bottom"].set_linewidth(2.5)
+            self.axes.spines["bottom"].set_color(
+                self._reference_parameters[self._baseline_idx]["color"]
+            )
             self._point_artists = [None] * self.curves.shape[0]
 
             X, P = self._build_distance_plot_data()
@@ -624,7 +617,7 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                 P = np.log10(P)
                 P[P == -np.inf] = 0
                 P[P == np.inf] = 0
-                self.axes.set_ylabel('log_10(Distance)')
+                self.axes.set_ylabel("log_10(Distance)")
 
             self._points = P
             # Sorting the points by Y coordinate.
@@ -636,10 +629,10 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             self.axes.set_ylim([0.9 * ymin, 1.1 * ymax])
 
             # Setting the colormap.
-            colormap = cm.get_cmap(name=self.colormap_name,
-                                   lut=len(self.curves))
-            self._points_colors = dict((i, colormap(i))
-                                       for i in range(len(self.curves)))
+            colormap = cm.get_cmap(name=self.colormap_name, lut=len(self.curves))
+            self._points_colors = dict(
+                (i, colormap(i)) for i in range(len(self.curves))
+            )
 
             # Inadequate way to plot the data, but this is needed in order to
             # create several pathcollections and enable us to differentiate
@@ -651,10 +644,10 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
                 if i in self._reference_idx:
                     plot_params = self._reference_parameters[i]
                 else:
-                    plot_params['c'] = self._points_colors[i]
-                self._point_artists[i] = self.axes.scatter(x=x + 1,
-                                                           y=self._points[i],
-                                                           **plot_params)
+                    plot_params["c"] = self._points_colors[i]
+                self._point_artists[i] = self.axes.scatter(
+                    x=x + 1, y=self._points[i], **plot_params
+                )
 
             self.update_chart(selected_data=True)
 
@@ -667,13 +660,17 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
         """
         fig = self.figure
         self._cb_mouse_move_id = fig.canvas.mpl_connect(
-            'motion_notify_event', self.cb_mouse_motion)
+            "motion_notify_event", self.cb_mouse_motion
+        )
         self._cb_mouse_button_id = fig.canvas.mpl_connect(
-            'button_press_event', self.cb_mouse_button)
+            "button_press_event", self.cb_mouse_button
+        )
         self._cb_axes_leave_id = fig.canvas.mpl_connect(
-            'axes_leave_event', self.cb_axes_leave)
+            "axes_leave_event", self.cb_axes_leave
+        )
         self._cb_fig_leave_id = fig.canvas.mpl_connect(
-            'figure_leave_event', self.cb_axes_leave)
+            "figure_leave_event", self.cb_axes_leave
+        )
 
     def _disconnect_cb(self):
         """
@@ -706,13 +703,12 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
             The baseline is not included in the results.
         """
         if self.curves is None:
-            raise AttributeError(
-                'No input data provided. Call \'set_curves\' first.')
+            raise AttributeError("No input data provided. Call 'set_curves' first.")
         if self._baseline_idx is None:
             raise AttributeError(
-                'No reference data provided. Call \'set_baseline_curve\' first.')
-        D = scipy.spatial.distance.pdist(
-            self.curves, metric=self.distance_metric)
+                "No reference data provided. Call 'set_baseline_curve' first."
+            )
+        D = scipy.spatial.distance.pdist(self.curves, metric=self.distance_metric)
         Y = scipy.spatial.distance.squareform(D)
         Y = Y[self._baseline_idx, :]
         X = range(self.curves.shape[0])
@@ -720,9 +716,19 @@ class DistanceChart(FigureCanvas, BrushableCanvas):
 
 
 def main():
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,
-                                 QPushButton, QVBoxLayout, QHBoxLayout, QFormLayout, QSlider,
-                                 QMessageBox, QCheckBox, QLabel)
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QWidget,
+        QPushButton,
+        QVBoxLayout,
+        QHBoxLayout,
+        QFormLayout,
+        QSlider,
+        QMessageBox,
+        QCheckBox,
+        QLabel,
+    )
     from PyQt5 import QtCore
     from PyQt5.QtCore import Qt
     import sys
@@ -730,6 +736,7 @@ def main():
     """
     Simple feature test function for the DistanceChart class.
     """
+
     class MyTestWidget(QMainWindow):
         """
         Qt derived class to embed our plot.
@@ -739,7 +746,7 @@ def main():
             super().__init__()
             self.left = 0
             self.top = 0
-            self.title = 'Dummy Qt widget'
+            self.title = "Dummy Qt widget"
             self.width = 600
             self.height = 400
             self._sld_timestep_start = None
@@ -762,40 +769,37 @@ def main():
             self.setWindowTitle(self.title)
             self.setGeometry(self.left, self.top, self.width, self.height)
 
-            self.dist_chart = DistanceChart(parent=self,
-                                            canvas_name='dist1',
-                                            s=40)
+            self.dist_chart = DistanceChart(parent=self, canvas_name="dist1", s=40)
 
-            eucl_button = QPushButton('Euclidean metric', self)
+            eucl_button = QPushButton("Euclidean metric", self)
             eucl_button.clicked.connect(self.set_metric_euclidean)
-            manh_button = QPushButton('Manhattan metric', self)
+            manh_button = QPushButton("Manhattan metric", self)
             manh_button.clicked.connect(self.set_metric_manhattan)
-            logscale_button = QPushButton('Log scale Y axis', self)
+            logscale_button = QPushButton("Log scale Y axis", self)
             logscale_button.clicked.connect(self.set_log_scale)
-            p10_baseline_button = QPushButton('Set P10 as baseline', self)
+            p10_baseline_button = QPushButton("Set P10 as baseline", self)
             p10_baseline_button.clicked.connect(self.set_baseline_p10)
-            p50_baseline_button = QPushButton('Set P50 as baseline', self)
+            p50_baseline_button = QPushButton("Set P50 as baseline", self)
             p50_baseline_button.clicked.connect(self.set_baseline_p50)
-            p90_baseline_button = QPushButton('Set P90 as baseline', self)
+            p90_baseline_button = QPushButton("Set P90 as baseline", self)
             p90_baseline_button.clicked.connect(self.set_baseline_p90)
-            rand_data = QPushButton('Generate new data', self)
+            rand_data = QPushButton("Generate new data", self)
             rand_data.clicked.connect(self.update_data)
-            group_sel = QCheckBox('Group selection', self)
+            group_sel = QCheckBox("Group selection", self)
             group_sel.setChecked(self.dist_chart.group_selection_enabled)
             group_sel.stateChanged.connect(self.set_group_selection)
-            reset_button = QPushButton('Reset view', self)
+            reset_button = QPushButton("Reset view", self)
             reset_button.clicked.connect(self.reset_plot)
 
-            lbl_start_ts = QLabel('Start time', self)
-            lbl_end_ts = QLabel('End time', self)
+            lbl_start_ts = QLabel("Start time", self)
+            lbl_end_ts = QLabel("End time", self)
 
             self._sld_timestep_start = QSlider(Qt.Horizontal, self)
             self._sld_timestep_start.setTickPosition(QSlider.TicksBothSides)
             self._sld_timestep_start.setMinimum(0)
             self._sld_timestep_start.setSingleStep(1)
             self._sld_timestep_start.setPageStep(5)
-            self._sld_timestep_start.valueChanged.connect(
-                self.set_start_timestep)
+            self._sld_timestep_start.valueChanged.connect(self.set_start_timestep)
 
             self._sld_timestep_end = QSlider(Qt.Horizontal, self)
             self._sld_timestep_end.setMinimum(0)
@@ -832,23 +836,23 @@ def main():
         def update_data(self):
             curves = np.random.normal(size=(10, self.max_timerange[1]))
             self.curves = np.vstack(
-                (curves, np.percentile(curves, q=[10, 50, 90], axis=0)))
+                (curves, np.percentile(curves, q=[10, 50, 90], axis=0))
+            )
             self._timerange = self.max_timerange
 
             self.dist_chart.set_curves(self.curves, False)
-            self.dist_chart.set_reference_curve(self.curves.shape[0] - 3, True,
-                                                False, color='r', marker='v',
-                                                s=50)
-            self.dist_chart.set_reference_curve(self.curves.shape[0] - 2, True,
-                                                False, color='b', marker='<',
-                                                s=50)
-            self.dist_chart.set_reference_curve(self.curves.shape[0] - 1, True,
-                                                False, color='g', marker='^',
-                                                s=50)
+            self.dist_chart.set_reference_curve(
+                self.curves.shape[0] - 3, True, False, color="r", marker="v", s=50
+            )
+            self.dist_chart.set_reference_curve(
+                self.curves.shape[0] - 2, True, False, color="b", marker="<", s=50
+            )
+            self.dist_chart.set_reference_curve(
+                self.curves.shape[0] - 1, True, False, color="g", marker="^", s=50
+            )
             self.dist_chart.set_baseline_curve(self.curves.shape[0] - 2, True)
-            curvenames = ['Curve-' + str(i + 1)
-                          for i in range(curves.shape[0])]
-            curvenames.extend(['Perc10', 'Perc50', 'Perc90'])
+            curvenames = ["Curve-" + str(i + 1) for i in range(curves.shape[0])]
+            curvenames.extend(["Perc10", "Perc50", "Perc90"])
             self.dist_chart.set_curvenames(curvenames)
 
             min_ts, max_ts = self.max_timerange
@@ -864,30 +868,32 @@ def main():
             self._timerange = (ts_start, ts_end)
             highlighted_data = self.dist_chart.highlighted_data
 
-            self.dist_chart.set_curves(self.curves[:, ts_start:ts_end],
-                                       update_chart=False)
-            self.dist_chart.set_reference_curve(self.curves.shape[0] - 3, True,
-                                                False, color='r', marker='v',
-                                                s=50)
-            self.dist_chart.set_reference_curve(self.curves.shape[0] - 2, True,
-                                                False, color='b', marker='<',
-                                                s=50)
-            self.dist_chart.set_reference_curve(self.curves.shape[0] - 1, True,
-                                                False, color='g', marker='^',
-                                                s=50)
+            self.dist_chart.set_curves(
+                self.curves[:, ts_start:ts_end], update_chart=False
+            )
+            self.dist_chart.set_reference_curve(
+                self.curves.shape[0] - 3, True, False, color="r", marker="v", s=50
+            )
+            self.dist_chart.set_reference_curve(
+                self.curves.shape[0] - 2, True, False, color="b", marker="<", s=50
+            )
+            self.dist_chart.set_reference_curve(
+                self.curves.shape[0] - 1, True, False, color="g", marker="^", s=50
+            )
             self.dist_chart.set_baseline_curve(self.curves.shape[0] - 2, True)
 
-            self.dist_chart.highlight_data(highlighted_data, erase=False,
-                                           update_chart=True)
+            self.dist_chart.highlight_data(
+                highlighted_data, erase=False, update_chart=True
+            )
 
         def set_metric_euclidean(self):
-            self.dist_chart.set_distance_metric('euclidean')
+            self.dist_chart.set_distance_metric("euclidean")
 
         def set_metric_manhattan(self):
-            self.dist_chart.set_distance_metric('cityblock')
+            self.dist_chart.set_distance_metric("cityblock")
 
         def set_metric_correlation(self):
-            self.dist_chart.set_distance_metric('correlation')
+            self.dist_chart.set_distance_metric("correlation")
 
         def set_log_scale(self):
             self.dist_chart.set_log_scale(not self.dist_chart.log_scale)
@@ -902,8 +908,8 @@ def main():
             self.dist_chart.set_baseline_curve(self.curves.shape[0] - 1, True)
 
         def set_brushed_data(self, child_name, obj_ids):
-            print('widget {} brushed some objects.'.format(child_name))
-            print('Objects:\n\t', obj_ids)
+            print("widget {} brushed some objects.".format(child_name))
+            print("Objects:\n\t", obj_ids)
 
         def set_start_timestep(self, start_ts):
             start_min, _ = self.max_timerange
@@ -940,8 +946,13 @@ def main():
             self.dist_chart.set_group_selection_enabled(check)
 
         def popup_question_dialog(self, title, question):
-            msg = QMessageBox(QMessageBox.Question, title, question,
-                              QMessageBox.Yes | QMessageBox.No, self)
+            msg = QMessageBox(
+                QMessageBox.Question,
+                title,
+                question,
+                QMessageBox.Yes | QMessageBox.No,
+                self,
+            )
             answer = msg.exec()
             return answer == QMessageBox.Yes
 
@@ -954,5 +965,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

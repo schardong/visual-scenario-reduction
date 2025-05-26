@@ -63,7 +63,7 @@ class TimeSeries(object):
                 if n not in self.names:
                     print('WARNING: Name {} is invalid. Continuing.'.format(n))
                     continue
-                
+
                 idx.append(self.col(n))
 
             if len(idx) == 0:
@@ -89,7 +89,7 @@ class TimeSeries(object):
             self._names = dict(zip(well_names, range(0, len(well_names))))
 
         self._data = np.genfromtxt(fname=filename, delimiter=',',
-                                   skip_header=True, dtype=np.float)
+                                   skip_header=True, dtype=float)
 
 
 def test_TimeSeries():

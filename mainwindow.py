@@ -10,13 +10,28 @@ import sys
 
 from collections import OrderedDict
 from PyQt5.QtCore import QDir, Qt, QSize
-from PyQt5.QtGui import QIntValidator, QPixmap
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
-                             QDesktopWidget, QFileDialog, QFormLayout,
-                             QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                             QLineEdit, QMainWindow, QMenu, QMessageBox,
-                             QPushButton, QSpinBox, QStyleFactory, QVBoxLayout,
-                             QWidget, QProxyStyle, QStyle)
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDesktopWidget,
+    QFileDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QStyleFactory,
+    QVBoxLayout,
+    QWidget,
+    QProxyStyle,
+    QStyle,
+)
 
 from fieldensemble import FieldEnsemble
 from plotwidget import PlotWidget
@@ -29,13 +44,13 @@ class SpinBoxCustomStyle(QProxyStyle):
 
     def styleHint(self, hint, option=None, widget=None, returnData=None):
         if hint == QStyle.SH_SpinBox_KeyPressAutoRepeatRate:
-            return 10**10
+            return 10**4
         elif hint == QStyle.SH_SpinBox_ClickAutoRepeatRate:
-            return 10**10
+            return 10**4
         elif hint == QStyle.SH_SpinBox_ClickAutoRepeatThreshold:
             # You can use only this condition to avoid the auto-repeat,
             # but better safe than sorry ;-)
-            return 10**10
+            return 10**4
         else:
             return super().styleHint(hint, option, widget, returnData)
 
@@ -44,36 +59,41 @@ class MainWindow(QMainWindow):
     """
     The main window of our application.
     """
-    WELL_TYPES = ['P', 'I']
 
-    FANCHART_COLOR_OPTIONS_MAPPING = OrderedDict({
-        'Grayscale': 'gray_r',
-        'Shades of Blue': 'Blues',
-        'Shades of Red': 'Reds',
-        'Heat': 'hot_r',
-    })
+    WELL_TYPES = ["P", "I"]
 
-    #FANCHART_OPTIONS_ORDERING = [
+    FANCHART_COLOR_OPTIONS_MAPPING = OrderedDict(
+        {
+            "Grayscale": "gray_r",
+            "Shades of Blue": "Blues",
+            "Shades of Red": "Reds",
+            "Heat": "hot_r",
+        }
+    )
+
+    # FANCHART_OPTIONS_ORDERING = [
     #    'Grayscale',
     #    'Shades of Blue',
     #    'Shades of Red',
     #    'Heat',
-    #]
+    # ]
 
-    DATA_COLOR_OPTIONS_MAPPING = OrderedDict({
-        'Winter': 'winter',
-        'Summer': 'summer',
-        'Topological': 'gist_earth',
-        'Ocean': 'ocean',
-        'Gist Stern': 'gist_stern',
-        'Terrain': 'terrain',
-        'Blue to Magenta': 'cool',
-        'Plasma': 'plasma',
-        'GNUplot': 'gnuplot',
-        'GNUplot2': 'gnuplot2',
-    })
+    DATA_COLOR_OPTIONS_MAPPING = OrderedDict(
+        {
+            "Winter": "winter",
+            "Summer": "summer",
+            "Topological": "gist_earth",
+            "Ocean": "ocean",
+            "Gist Stern": "gist_stern",
+            "Terrain": "terrain",
+            "Blue to Magenta": "cool",
+            "Plasma": "plasma",
+            "GNUplot": "gnuplot",
+            "GNUplot2": "gnuplot2",
+        }
+    )
 
-    #DATA_OPTIONS_ORDERING = [
+    # DATA_OPTIONS_ORDERING = [
     #    'Topological',
     #    'Ocean',
     #    'Terrain',
@@ -81,19 +101,23 @@ class MainWindow(QMainWindow):
     #    'Gist Stern',
     #    'Winter',
     #    'Summer',
-    #]
+    # ]
 
-    TLCHART_GLYPH_SIZE_OPTIONS_MAPPING = OrderedDict({
-        'Linear-Increasing': 'linear_increasing',
-        'Linear-Decreasing': 'linear_decreasing',
-    })
+    TLCHART_GLYPH_SIZE_OPTIONS_MAPPING = OrderedDict(
+        {
+            "Linear-Increasing": "linear_increasing",
+            "Linear-Decreasing": "linear_decreasing",
+        }
+    )
 
-    TLCHART_SATURATION_OPTIONS_MAPPING = OrderedDict({
-        'Constant': 'constant',
-        'Linear-Increasing': 'linear_increasing',
-        'Linear-Decreasing': 'linear_decreasing',
-        'Variance': 'variance',
-    })
+    TLCHART_SATURATION_OPTIONS_MAPPING = OrderedDict(
+        {
+            "Constant": "constant",
+            "Linear-Increasing": "linear_increasing",
+            "Linear-Decreasing": "linear_decreasing",
+            "Variance": "variance",
+        }
+    )
 
     def __init__(self, width, height):
         super(MainWindow, self).__init__()
@@ -101,15 +125,15 @@ class MainWindow(QMainWindow):
         self._plt_widget = None
         self._left, self._top = 0, 0
         self._width, self._height = width, height
-        self._title = 'Time-series Scenario Selection'
+        self._title = "Time-series Scenario Selection"
 
         # Data setup
         self._ensemble = None
         self._properties = []
-        self._base_data_path = ''
-        self._full_data_path = ''
+        self._base_data_path = ""
+        self._full_data_path = ""
         self._curr_property = None
-        self._curr_baseline = 'P50'
+        self._curr_baseline = "P50"
         self._well_type = self.WELL_TYPES[0]
 
         # UI elements
@@ -184,8 +208,7 @@ class MainWindow(QMainWindow):
         event: Qt
         """
         new_size = event.size()
-        self._panel_widget.setMaximumSize(
-            400, new_size.height())
+        self._panel_widget.setMaximumSize(400, new_size.height())
 
     def set_current_property(self, new_prop):
         """
@@ -198,7 +221,7 @@ class MainWindow(QMainWindow):
             The new property to be used by the plots.
         """
         if new_prop not in self.properties:
-            raise ValueError('New property (%s) is unknown.' % new_prop)
+            raise ValueError("New property (%s) is unknown." % new_prop)
         self._curr_property = new_prop
 
     def set_current_baseline(self, new_baseline):
@@ -212,8 +235,8 @@ class MainWindow(QMainWindow):
             The ID of the new baseline. Possible values are: 'p10', 'p50' and
             'p90'.
         """
-        if new_baseline not in ['P10', 'P50', 'P90']:
-            raise ValueError('New baseline (%s) is unknown.' % new_baseline)
+        if new_baseline not in ["P10", "P50", "P90"]:
+            raise ValueError("New baseline (%s) is unknown." % new_baseline)
         self._curr_baseline = new_baseline
 
     def fileLoadData(self):
@@ -224,26 +247,34 @@ class MainWindow(QMainWindow):
         TO-DO: Load initial data if the user chooses to.
         """
         data_path = QFileDialog.getExistingDirectory(
-            self, 'Open data directory', QDir.homePath())
+            self, "Open data directory", QDir.homePath()
+        )
 
         if not data_path:
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self._base_data_path = data_path
-        self._full_data_path = os.path.join(self._base_data_path, 'ajustado')
+        self._full_data_path = os.path.join(self._base_data_path, "ajustado")
         self._properties = os.listdir(self._full_data_path)
         cprop = self.current_property
         if not cprop or cprop not in self.properties:
             self.set_current_property(self.properties[0])
 
-        self._ensemble = FieldEnsemble(well_data_path=self._full_data_path,
-                                       prop_list=self.properties,
-                                       well_type_path=self._base_data_path)
+        self._ensemble = FieldEnsemble(
+            well_data_path=self._full_data_path,
+            prop_list=self.properties,
+            well_type_path=self._base_data_path,
+        )
 
         QApplication.restoreOverrideCursor()
-        msg = QMessageBox(QMessageBox.Information, 'Load data',
-                          'Data loaded successfully.', QMessageBox.Ok, self)
+        msg = QMessageBox(
+            QMessageBox.Information,
+            "Load data",
+            "Data loaded successfully.",
+            QMessageBox.Ok,
+            self,
+        )
         msg.exec()
 
         # Adding the loaded curves to the plot widget
@@ -276,7 +307,11 @@ class MainWindow(QMainWindow):
         Method called whenever the 'About' option is selected. Opens a dialog
         with some information about this software.
         """
-        QMessageBox.about(self, 'About this software', 'This software is a prototype time-series visualization tool that implements a series of charts in order to help on the task of selecting representative time-series. To accomplish this task, the software uses the brushing and linking technique to enable the selection of a series (or group of series) in one chart and this seleciton is reflected on the others. This tool also implements two new charts proposed by our research work, the Time-lapsed Multidimensional Projection chart and the Rank chart.\n\nThis is a prototype, meaning that there are bugs lying around and the user interface is definetly not polished. We provide no warranty whatsoever, so use this software at your own risk.')
+        QMessageBox.about(
+            self,
+            "About this software",
+            "This software is a prototype time-series visualization tool that implements a series of charts in order to help on the task of selecting representative time-series. To accomplish this task, the software uses the brushing and linking technique to enable the selection of a series (or group of series) in one chart and this seleciton is reflected on the others. This tool also implements two new charts proposed by our research work, the Time-lapsed Multidimensional Projection chart and the Rank chart.\n\nThis is a prototype, meaning that there are bugs lying around and the user interface is definetly not polished. We provide no warranty whatsoever, so use this software at your own risk.",
+        )
 
     def closeEvent(self, _):
         """
@@ -312,7 +347,7 @@ class MainWindow(QMainWindow):
         Slot method to set the plot points option in the time lapse projection
         plot.
         """
-        checked = (state == Qt.Checked)
+        checked = state == Qt.Checked
         self._plt_widget.set_plot_points_tlchart(checked)
 
         # Point and brush plots are mutually exclusive.
@@ -328,7 +363,7 @@ class MainWindow(QMainWindow):
         Slot method to set the plot lines option in the time lapse projection
         plot.
         """
-        checked = (state == Qt.Checked)
+        checked = state == Qt.Checked
         self._plt_widget.set_plot_lines_tlchart(checked)
 
         if not self._chk_plot_brush_strokes.isChecked():
@@ -339,9 +374,8 @@ class MainWindow(QMainWindow):
             self._chk_plot_brush_strokes.setChecked(False)
 
     def set_plot_brush_strokes_tlchart(self, state):
-        """
-        """
-        checked = (state == Qt.Checked)
+        """ """
+        checked = state == Qt.Checked
         self._plt_widget.set_plot_brush_strokes_tlchart(checked)
 
         self._combo_glyph_size.setEnabled(checked)
@@ -361,7 +395,7 @@ class MainWindow(QMainWindow):
         """
         Slot method to set the log-scale option in the scenario/distance plot.
         """
-        checked = (state == Qt.Checked)
+        checked = state == Qt.Checked
         self._plt_widget.set_log_scale_distchart(checked)
 
     def fan_color_pallete_changed(self):
@@ -413,7 +447,7 @@ class MainWindow(QMainWindow):
 
         if value >= (end_ts - 5):
             if end_ts == end_max:
-                sys.stdout.write('\a')
+                sys.stdout.write("\a")
                 sys.stdout.flush()
                 return
 
@@ -436,7 +470,7 @@ class MainWindow(QMainWindow):
 
         if value <= (start_ts + 5):
             if start_ts == start_min:
-                sys.stdout.write('\a')
+                sys.stdout.write("\a")
                 sys.stdout.flush()
                 return
 
@@ -453,44 +487,41 @@ class MainWindow(QMainWindow):
         DOCSTRING GOES HERE
         """
         self._plt_widget.set_saturation_map_type_tlchart(
-            self.TLCHART_SATURATION_OPTIONS_MAPPING[opt])
+            self.TLCHART_SATURATION_OPTIONS_MAPPING[opt]
+        )
 
     def set_glyph_size_type_tlchart(self, opt):
         self._plt_widget.set_glyph_size_type_tlchart(
-            self.TLCHART_GLYPH_SIZE_OPTIONS_MAPPING[opt])
+            self.TLCHART_GLYPH_SIZE_OPTIONS_MAPPING[opt]
+        )
 
     def update_data(self, **kwargs):
         """
         Gets the newly loaded data from the Time series ensemble and passes
         them to the plot widget.
         """
-        if 'data_changed' in kwargs:
+        if "data_changed" in kwargs:
             # Since changing the data is a lengthy operation, we change the
             # mouse cursor to indicate this to the user.
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            group_data = self._ensemble.get_group_data(well_type=self._well_type,
-                                                       well_prop=self.properties)
-            self._plt_widget.set_curves(
-                group_data[self.current_property].T[:, 132:])
+            group_data = self._ensemble.get_group_data(
+                well_type=self._well_type, well_prop=self.properties
+            )
+            self._plt_widget.set_curves(group_data[self.current_property].T[:, 132:])
             self.update_data(baseline_changed=True)
-            self._plt_widget.set_property_name(self.current_property,
-                                               update_charts=False)
+            self._plt_widget.set_property_name(
+                self.current_property, update_charts=False
+            )
             self._plt_widget.update_charts(data_changed=True)
             self._plt_widget.set_curvenames(sorted(self._ensemble.field_names))
 
-            self._chk_show_p10.setChecked(
-                self._plt_widget.fan_is_showing_p10())
-            self._chk_show_p50.setChecked(
-                self._plt_widget.fan_is_showing_p50())
-            self._chk_show_p90.setChecked(
-                self._plt_widget.fan_is_showing_p90())
+            self._chk_show_p10.setChecked(self._plt_widget.fan_is_showing_p10())
+            self._chk_show_p50.setChecked(self._plt_widget.fan_is_showing_p50())
+            self._chk_show_p90.setChecked(self._plt_widget.fan_is_showing_p90())
 
-            self._chk_show_p10_lamp.setChecked(
-                self._plt_widget.lamp_is_showing_p10())
-            self._chk_show_p50_lamp.setChecked(
-                self._plt_widget.lamp_is_showing_p50())
-            self._chk_show_p90_lamp.setChecked(
-                self._plt_widget.lamp_is_showing_p90())
+            self._chk_show_p10_lamp.setChecked(self._plt_widget.lamp_is_showing_p10())
+            self._chk_show_p50_lamp.setChecked(self._plt_widget.lamp_is_showing_p50())
+            self._chk_show_p90_lamp.setChecked(self._plt_widget.lamp_is_showing_p90())
 
             start_ts, end_ts = self._plt_widget.max_timerange
             self._spin_start_ts.setMaximum(end_ts - 5)
@@ -500,7 +531,7 @@ class MainWindow(QMainWindow):
             self._spin_end_ts.setValue(end_ts)
 
             QApplication.restoreOverrideCursor()
-        if 'baseline_changed' in kwargs:
+        if "baseline_changed" in kwargs:
             if not self._ensemble:
                 return
             self._plt_widget.set_baseline_curve(self.current_baseline)
@@ -519,7 +550,7 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._plt_widget)
 
         # Building the graphics options panel section
-        self._graphics_box = QGroupBox('Graphical Options', self._main_widget)
+        self._graphics_box = QGroupBox("Graphical Options", self._main_widget)
         self._graphics_box.setEnabled(False)
 
         self._global_graphical_box = self._build_global_graphical_options_box()
@@ -554,7 +585,8 @@ class MainWindow(QMainWindow):
         self.setFocus()
         self.setCentralWidget(self._main_widget)
         self._plt_widget.set_fan_color_pallete(
-            self.FANCHART_COLOR_OPTIONS_MAPPING['Grayscale'])
+            self.FANCHART_COLOR_OPTIONS_MAPPING["Grayscale"]
+        )
 
     def _build_algorithm_options_box(self):
         """
@@ -566,7 +598,7 @@ class MainWindow(QMainWindow):
         A QGroupBox instance containing the UI for controlling the global
         algorithm parameters.
         """
-        box = QGroupBox('Algorithm Options', self)
+        box = QGroupBox("Algorithm Options", self)
 
         form_layout = QFormLayout()
         form_layout.setSpacing(1)
@@ -575,23 +607,22 @@ class MainWindow(QMainWindow):
         form_layout.setFormAlignment(Qt.AlignHCenter | Qt.AlignTop)
         form_layout.setLabelAlignment(Qt.AlignRight)
 
-        label_property = QLabel('Property:', self._main_widget)
+        label_property = QLabel("Property:", self._main_widget)
         self._combo_property = QComboBox(self._main_widget)
         self._combo_property.currentIndexChanged.connect(self.property_changed)
 
-        label_baseline = QLabel('Baseline: ', self._main_widget)
+        label_baseline = QLabel("Baseline: ", self._main_widget)
         self._combo_baseline = QComboBox(self._main_widget)
-        self._combo_baseline.addItem('P10')
-        self._combo_baseline.addItem('P50')
-        self._combo_baseline.addItem('P90')
+        self._combo_baseline.addItem("P10")
+        self._combo_baseline.addItem("P50")
+        self._combo_baseline.addItem("P90")
         self._combo_baseline.setCurrentIndex(1)
         self._combo_baseline.currentIndexChanged.connect(self.baseline_changed)
 
         form_layout.addRow(label_property, self._combo_property)
         form_layout.addRow(label_baseline, self._combo_baseline)
 
-        clear_selected_data = QPushButton('Deselect all',
-                                          self._main_widget)
+        clear_selected_data = QPushButton("Deselect all", self._main_widget)
         clear_selected_data.clicked.connect(self.clear_selected_data)
 
         box_layout = QVBoxLayout()
@@ -611,18 +642,19 @@ class MainWindow(QMainWindow):
         A QGroupBox instance containing the UI for controlling the graphical
         options common to all plots.
         """
-        box = QGroupBox('Global Options', self)
+        box = QGroupBox("Global Options", self)
 
         self._combo_data_colormap = QComboBox(self)
         self._combo_data_colormap.currentIndexChanged.connect(
-            self.data_colormap_changed)
+            self.data_colormap_changed
+        )
         for k in self.DATA_COLOR_OPTIONS_MAPPING:
             self._combo_data_colormap.addItem(k)
 
-        save_plots_btn = QPushButton('Save plots to PDF', self)
+        save_plots_btn = QPushButton("Save plots to PDF", self)
         save_plots_btn.clicked.connect(self.save_plots)
 
-        colormap_label = QLabel('Data Color Pallete:')
+        colormap_label = QLabel("Data Color Pallete:")
         colormap_layout = QFormLayout()
         colormap_layout.setSpacing(1)
         colormap_layout.addRow(colormap_label, self._combo_data_colormap)
@@ -643,10 +675,10 @@ class MainWindow(QMainWindow):
         -------
         A QGroupBox with the timestep selection UI elements.
         """
-        box = QGroupBox('Timestep selection', self)
+        box = QGroupBox("Timestep selection", self)
 
-        lbl_start_ts = QLabel('Start time', self._main_widget)
-        lbl_end_ts = QLabel('End time', self._main_widget)
+        lbl_start_ts = QLabel("Start time", self._main_widget)
+        lbl_end_ts = QLabel("End time", self._main_widget)
 
         self._spin_start_ts = QSpinBox(self._main_widget)
         self._spin_start_ts.setMaximumSize(QSize(300, 25))
@@ -656,7 +688,6 @@ class MainWindow(QMainWindow):
         self._spin_start_ts.valueChanged.connect(self.set_start_timestep)
 
         self._spin_end_ts = QSpinBox(self._main_widget)
-        print(self._spin_end_ts.size())
         self._spin_end_ts.setMaximumSize(QSize(300, 25))
         self._spin_end_ts.setKeyboardTracking(False)
         self._spin_end_ts.setValue(0)
@@ -681,48 +712,54 @@ class MainWindow(QMainWindow):
         A QGroupBox instance containing the UI for controlling the graphical
         options for the time-lapsed projection plot.
         """
-        box = QGroupBox('Time-lapsed LAMP Chart', self)
+        box = QGroupBox("Time-lapsed LAMP Chart", self)
 
-        self._chk_plot_points = QCheckBox('Show points', self._main_widget)
-        self._chk_plot_points.setChecked(
-            self._plt_widget.get_plot_points_tlchart())
+        self._chk_plot_points = QCheckBox("Show points", self._main_widget)
+        self._chk_plot_points.setChecked(self._plt_widget.get_plot_points_tlchart())
 
-        self._chk_plot_lines = QCheckBox('Show lines', self._main_widget)
-        self._chk_plot_lines.setChecked(
-            self._plt_widget.get_plot_lines_tlchart())
+        self._chk_plot_lines = QCheckBox("Show lines", self._main_widget)
+        self._chk_plot_lines.setChecked(self._plt_widget.get_plot_lines_tlchart())
 
-        self._chk_plot_brush_strokes = QCheckBox('Show brush strokes',
-                                                 self._main_widget)
+        self._chk_plot_brush_strokes = QCheckBox(
+            "Show brush strokes", self._main_widget
+        )
         self._chk_plot_brush_strokes.setChecked(
-            self._plt_widget.get_plot_brush_strokes_tlchart())
+            self._plt_widget.get_plot_brush_strokes_tlchart()
+        )
 
         self._combo_saturation_map = QComboBox(self._main_widget)
         for k in self.TLCHART_SATURATION_OPTIONS_MAPPING:
             self._combo_saturation_map.addItem(k)
         self._combo_saturation_map.currentIndexChanged[str].connect(
-            self.set_saturation_map_type_tlchart)
+            self.set_saturation_map_type_tlchart
+        )
 
         self._combo_glyph_size = QComboBox(self._main_widget)
         for k in self.TLCHART_GLYPH_SIZE_OPTIONS_MAPPING:
             self._combo_glyph_size.addItem(k)
         self._combo_glyph_size.currentIndexChanged[str].connect(
-            self.set_glyph_size_type_tlchart)
-        self._combo_glyph_size.setEnabled(not self._plt_widget.get_plot_brush_strokes_tlchart())
+            self.set_glyph_size_type_tlchart
+        )
+        self._combo_glyph_size.setEnabled(
+            not self._plt_widget.get_plot_brush_strokes_tlchart()
+        )
         # chk_ts_highlight = QCheckBox('Timestep highlight', self._main_widget)
         # chk_ts_highlight.setChecked(self._plt_widget.get_ts_highlight_tlchart())
         # chk_ts_highlight.stateChanged.connect(self.set_ts_highlight_tlchart)
 
         self._chk_plot_points.stateChanged.connect(self.set_plot_points_tlchart)
         self._chk_plot_lines.stateChanged.connect(self.set_plot_lines_tlchart)
-        self._chk_plot_brush_strokes.stateChanged.connect(self.set_plot_brush_strokes_tlchart)
+        self._chk_plot_brush_strokes.stateChanged.connect(
+            self.set_plot_brush_strokes_tlchart
+        )
 
-        self._chk_show_p10_lamp = QCheckBox('Show P10', box)
+        self._chk_show_p10_lamp = QCheckBox("Show P10", box)
         self._chk_show_p10_lamp.clicked.connect(self._plt_widget.lamp_show_p10)
 
-        self._chk_show_p50_lamp = QCheckBox('Show P50', box)
+        self._chk_show_p50_lamp = QCheckBox("Show P50", box)
         self._chk_show_p50_lamp.clicked.connect(self._plt_widget.lamp_show_p50)
 
-        self._chk_show_p90_lamp = QCheckBox('Show P90', box)
+        self._chk_show_p90_lamp = QCheckBox("Show P90", box)
         self._chk_show_p90_lamp.clicked.connect(self._plt_widget.lamp_show_p90)
 
         glyph_layout = QVBoxLayout()
@@ -753,17 +790,15 @@ class MainWindow(QMainWindow):
         A QGroupBox instance containing the UI for controlling the graphical
         options for the scenario/distance plot.
         """
-        box = QGroupBox('Distance Chart', self)
+        box = QGroupBox("Distance Chart", self)
 
-        chk_log_scale = QCheckBox('Logarithmic scale', self._main_widget)
+        chk_log_scale = QCheckBox("Logarithmic scale", self._main_widget)
         chk_log_scale.stateChanged.connect(self.set_log_scale_distchart)
         chk_log_scale.setChecked(self._plt_widget.get_log_scale_distchart())
 
-        chk_group_selection = QCheckBox('Group selection', self._main_widget)
-        chk_group_selection.stateChanged.connect(
-            self.set_group_selection_distchart)
-        chk_group_selection.setChecked(
-            self._plt_widget.get_group_selection_distchart())
+        chk_group_selection = QCheckBox("Group selection", self._main_widget)
+        chk_group_selection.stateChanged.connect(self.set_group_selection_distchart)
+        chk_group_selection.setChecked(self._plt_widget.get_group_selection_distchart())
 
         box_layout = QVBoxLayout()
         box_layout.setSpacing(1)
@@ -783,24 +818,26 @@ class MainWindow(QMainWindow):
         A QGroupBox instance containing the UI for controlling the graphical
         options for the fanchart.
         """
-        box = QGroupBox('Fanchart', self)
+        box = QGroupBox("Fanchart", self)
 
-        color_label = QLabel('Color pallete: ', box)
+        color_label = QLabel("Color pallete: ", box)
         self._combo_fan_color_pallete = QComboBox(box)
         for k in self.FANCHART_COLOR_OPTIONS_MAPPING:
             self._combo_fan_color_pallete.addItem(k)
         self._combo_fan_color_pallete.setCurrentText(
-            self._plt_widget.get_fan_color_pallete())
+            self._plt_widget.get_fan_color_pallete()
+        )
         self._combo_fan_color_pallete.currentIndexChanged.connect(
-            self.fan_color_pallete_changed)
+            self.fan_color_pallete_changed
+        )
 
-        self._chk_show_p10 = QCheckBox('Show P10', box)
+        self._chk_show_p10 = QCheckBox("Show P10", box)
         self._chk_show_p10.clicked.connect(self._plt_widget.fan_show_p10)
 
-        self._chk_show_p50 = QCheckBox('Show P50', box)
+        self._chk_show_p50 = QCheckBox("Show P50", box)
         self._chk_show_p50.clicked.connect(self._plt_widget.fan_show_p50)
 
-        self._chk_show_p90 = QCheckBox('Show P90', box)
+        self._chk_show_p90 = QCheckBox("Show P90", box)
         self._chk_show_p90.clicked.connect(self._plt_widget.fan_show_p90)
 
         form_layout = QFormLayout()
@@ -831,13 +868,11 @@ class MainWindow(QMainWindow):
         A QGroupBox instance containing the UI for controlling the graphical
         options for the rank chart.
         """
-        box = QGroupBox('Bump Chart', self)
+        box = QGroupBox("Bump Chart", self)
 
-        chk_group_selection = QCheckBox('Group selection', self)
-        chk_group_selection.stateChanged.connect(
-            self.set_group_selection_rankchart)
-        chk_group_selection.setChecked(
-            self._plt_widget.get_group_selection_rankchart())
+        chk_group_selection = QCheckBox("Group selection", self)
+        chk_group_selection.stateChanged.connect(self.set_group_selection_rankchart)
+        chk_group_selection.setChecked(self._plt_widget.get_group_selection_rankchart())
 
         box_layout = QVBoxLayout()
         box_layout.addWidget(chk_group_selection)
@@ -854,18 +889,18 @@ class MainWindow(QMainWindow):
         -------
         A QGroupBox instance containing the UI elements for the plot legend.
         """
-        box = QGroupBox('Plot Legend', self)
+        box = QGroupBox("Plot Legend", self)
 
         p10_glyph = QLabel(box)
-        p10_glyph.setPixmap(QPixmap('img/p10.png'))
+        p10_glyph.setPixmap(QPixmap("img/p10.png"))
         p50_glyph = QLabel(box)
-        p50_glyph.setPixmap(QPixmap('img/p50.png'))
+        p50_glyph.setPixmap(QPixmap("img/p50.png"))
         p90_glyph = QLabel(box)
-        p90_glyph.setPixmap(QPixmap('img/p90.png'))
+        p90_glyph.setPixmap(QPixmap("img/p90.png"))
 
-        p10_label = QLabel('P10', box)
-        p50_label = QLabel('P50', box)
-        p90_label = QLabel('P90', box)
+        p10_label = QLabel("P10", box)
+        p50_label = QLabel("P50", box)
+        p90_label = QLabel("P90", box)
 
         box_layout = QFormLayout()
         box_layout.setSpacing(1)
@@ -886,14 +921,12 @@ class MainWindow(QMainWindow):
         Method to populate the menubar.
         """
         menubar = self.menuBar()
-        self._file_menu = QMenu('File', self)
-        self._file_menu.addAction('Load data...', self.fileLoadData,
-                                  Qt.CTRL + Qt.Key_O)
-        self._file_menu.addAction('Quit', self.fileQuit,
-                                  Qt.CTRL + Qt.Key_Q)
+        self._file_menu = QMenu("File", self)
+        self._file_menu.addAction("Load data...", self.fileLoadData, Qt.CTRL + Qt.Key_O)
+        self._file_menu.addAction("Quit", self.fileQuit, Qt.CTRL + Qt.Key_Q)
 
-        self._help_menu = QMenu('Help', self)
-        self._help_menu.addAction('About...', self.helpAbout)
+        self._help_menu = QMenu("Help", self)
+        self._help_menu.addAction("About...", self.helpAbout)
 
         menubar.addMenu(self._file_menu)
         menubar.addSeparator()
@@ -905,9 +938,10 @@ def main():
     App entry point.
     """
     from matplotlib import rcParams
-    rcParams.update({'figure.autolayout': True})
 
-    QApplication.setStyle(QStyleFactory.create('Fusion'))
+    rcParams.update({"figure.autolayout": True})
+
+    QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication(sys.argv)
 
     rect = QDesktopWidget().screenGeometry(-1)
@@ -923,5 +957,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
