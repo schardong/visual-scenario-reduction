@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import matplotlib
+import matplotlib.axes
 import numpy as np
 
 
@@ -9,12 +11,14 @@ class ZoomPanHandler:
     Matplotlib callback class to handle pan and zoom events.
     """
 
-    def __init__(self, axes, scale_factor=2, mouse_button=2):
+    def __init__(
+        self, axes: matplotlib.axes.Axes, scale_factor: float = 2, mouse_button: int = 2
+    ):
         """
         Default constructor for the ZoomPanHandler class.
 
         Parameters
-        axes: matplotlib.backend_bases.Axes
+        axes: matplotlib.axes.Axes
             The axes to attach this handler to.
         scale_factor: number
             The scale factor to apply when zooming.
@@ -86,16 +90,24 @@ class ZoomPanHandler:
 
             xlim = ylim = []
 
-            if event.button == 'up':  # zoom-in
-                xlim = [xdata - xmin / self.scale_factor,
-                        xdata + xmax / self.scale_factor]
-                ylim = [ydata - ymin / self.scale_factor,
-                        ydata + ymax / self.scale_factor]
-            elif event.button == 'down':  # zoom-out
-                xlim = [xdata - xmin * self.scale_factor,
-                        xdata + xmax * self.scale_factor]
-                ylim = [ydata - ymin * self.scale_factor,
-                        ydata + ymax * self.scale_factor]
+            if event.button == "up":  # zoom-in
+                xlim = [
+                    xdata - xmin / self.scale_factor,
+                    xdata + xmax / self.scale_factor,
+                ]
+                ylim = [
+                    ydata - ymin / self.scale_factor,
+                    ydata + ymax / self.scale_factor,
+                ]
+            elif event.button == "down":  # zoom-out
+                xlim = [
+                    xdata - xmin * self.scale_factor,
+                    xdata + xmax * self.scale_factor,
+                ]
+                ylim = [
+                    ydata - ymin * self.scale_factor,
+                    ydata + ymax * self.scale_factor,
+                ]
 
             self._curr_xlim = xlim
             self._curr_ylim = ylim
@@ -119,8 +131,8 @@ class ZoomPanHandler:
             return
         xlim = self.axes.get_xlim()
         ylim = self.axes.get_ylim()
-        xlim -= (event.xdata - self._press_coords[0])
-        ylim -= (event.ydata - self._press_coords[1])
+        xlim -= event.xdata - self._press_coords[0]
+        ylim -= event.ydata - self._press_coords[1]
         self._curr_xlim = xlim
         self._curr_ylim = ylim
         self.axes.set_xlim(xlim)
@@ -130,13 +142,17 @@ class ZoomPanHandler:
     def _connect_cb(self):
         fig = self.axes.figure
         self._cb_mouse_wheel_id = fig.canvas.mpl_connect(
-            'scroll_event', self._cb_mouse_wheel)
+            "scroll_event", self._cb_mouse_wheel
+        )
         self._cb_mouse_button_id = fig.canvas.mpl_connect(
-            'button_press_event', self._cb_mouse_button)
+            "button_press_event", self._cb_mouse_button
+        )
         self._cb_mouse_release_id = fig.canvas.mpl_connect(
-            'button_release_event', self._cb_mouse_release)
+            "button_release_event", self._cb_mouse_release
+        )
         self._cb_mouse_motion_id = fig.canvas.mpl_connect(
-            'motion_notify_event', self._cb_mouse_motion)
+            "motion_notify_event", self._cb_mouse_motion
+        )
 
     def _disconnect_cb(self):
         fig = self.axes.figure
@@ -156,13 +172,13 @@ class ZoomPanHandler:
 
 def main():
     import matplotlib.pyplot as plt
+
     fig = plt.figure()
     axes = fig.add_subplot(111)
-    axes.scatter(x=np.arange(0, 10, 0.5), y=np.arange(
-        0, 20, 1), color='r', marker='o')
-    hand = ZoomPanHandler(axes, scale_factor=1.5)
+    axes.scatter(x=np.arange(0, 10, 0.5), y=np.arange(0, 20, 1), color="r", marker="o")
+    _ = ZoomPanHandler(axes, scale_factor=1.5)
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

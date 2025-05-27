@@ -12,7 +12,7 @@ import sklearn.manifold
 from enum import Enum
 from matplotlib.collections import LineCollection
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import cm
 from PyQt5.QtCore import QPoint

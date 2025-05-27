@@ -8,7 +8,7 @@ Module to handle the Instance/Distance chart.
 import numpy as np
 import scipy.spatial.distance
 from matplotlib import cm
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QPoint
 from PyQt5.QtWidgets import QSizePolicy, QToolTip
