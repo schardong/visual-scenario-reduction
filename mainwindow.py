@@ -239,6 +239,28 @@ class MainWindow(QMainWindow):
             raise ValueError("New baseline (%s) is unknown." % new_baseline)
         self._curr_baseline = new_baseline
 
+    def load_data(self, path: str, enable_ui: bool=True, populate_combo: bool=True):
+        """
+        Loads an ensemble from `path`.
+        """
+        self._base_data_path = path
+        self._full_data_path = os.path.join(self._base_data_path, "ajustado")
+        self._properties = os.listdir(self._full_data_path)
+        cprop = self.current_property
+        if not cprop or cprop not in self.properties:
+            self.set_current_property(self.properties[0])
+
+        self._ensemble = FieldEnsemble(
+            well_data_path=self._full_data_path,
+            prop_list=self.properties,
+            well_type_path=self._base_data_path,
+        )
+
+        if populate_combo:
+            self._populate_property_combo()
+        if enable_ui:
+            self._enable_ui()
+
     def fileLoadData(self):
         """
         Opens a popup file dialog and asks for the location of the data files,
@@ -254,18 +276,7 @@ class MainWindow(QMainWindow):
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self._base_data_path = data_path
-        self._full_data_path = os.path.join(self._base_data_path, "ajustado")
-        self._properties = os.listdir(self._full_data_path)
-        cprop = self.current_property
-        if not cprop or cprop not in self.properties:
-            self.set_current_property(self.properties[0])
-
-        self._ensemble = FieldEnsemble(
-            well_data_path=self._full_data_path,
-            prop_list=self.properties,
-            well_type_path=self._base_data_path,
-        )
+        self.load_data(data_path, enable_ui=False, populate_combo=False)
 
         QApplication.restoreOverrideCursor()
         msg = QMessageBox(
@@ -280,12 +291,15 @@ class MainWindow(QMainWindow):
         # Adding the loaded curves to the plot widget
         self.update_data(data_changed=True)
 
-        # Adding the properties to the UI.
+        self._populate_property_combo()
+        self._enable_ui()
+
+    def _populate_property_combo(self):
         self._combo_property.clear()
         for prop in self._properties:
             self._combo_property.addItem(prop)
 
-        # Enabling the UI
+    def _enable_ui(self):
         self._alg_box.setEnabled(True)
         self._global_graphical_box.setEnabled(True)
         self._timestep_box.setEnabled(True)
@@ -937,12 +951,16 @@ def main():
     """
     App entry point.
     """
+    import argparse
     from matplotlib import rcParams
-
     rcParams.update({"figure.autolayout": True})
 
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication(sys.argv)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input-path", help="Path to the input ensemble data.")
+    args = parser.parse_args()
 
     rect = QDesktopWidget().screenGeometry(-1)
     width = 1400
@@ -953,6 +971,10 @@ def main():
         width, height = (1650, 1080)
 
     window = MainWindow(width, height)
+    if args.input_path:
+        window.load_data(args.input_path, enable_ui=True)
+        window.update_data(data_changed=True)
+
     window.show()
     sys.exit(app.exec_())
 
